@@ -9,3 +9,5 @@ dist-ssr
 *.log
 .env
 .env.local
+swarm-launch-video/
+.video_analysis/
