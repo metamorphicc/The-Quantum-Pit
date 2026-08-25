@@ -60,7 +60,7 @@ import type {
   TraderClassId,
 } from './types'
 import { chance, formatCash, formatSigned, lerp, randFloat } from './util'
-import { payForCosmetic, providerLabel } from '../payments/cosmeticCheckout'
+import { fetchEntitlements, payForCosmetic, providerLabel } from '../payments/cosmeticCheckout'
 import { claimBaseAchievementBadge } from '../web3/baseAchievements'
 import {
   haptic,
@@ -899,13 +899,16 @@ export async function buyCosmetic(
     toast('Base needed', 'bad', msg)
     return refusal(msg)
   }
-  if ((provider === 'telegram-stars' || provider === 'ton') && s.loginMethod !== 'telegram') {
-    const msg = 'Enter with Telegram to buy with Stars or TON.'
+  if (provider === 'telegram-stars' && s.loginMethod !== 'telegram') {
+    const msg = 'Enter with Telegram to buy with Stars.'
     toast('Telegram needed', 'bad', msg)
     return refusal(msg)
   }
 
   try {
+    // Resolves only after the server has verified the payment (Base tx
+    // confirmed onchain, or Stars granted by the webhook). So this local grant
+    // is a cache of server truth, not the client deciding it paid.
     const receipt = await payForCosmetic(cosmetic, s, provider)
     setState((state) => ({
       ownedCosmetics: [...new Set([...state.ownedCosmetics, id])],
@@ -959,8 +962,28 @@ export function setLoginIdentity(
     walletConnectedAt: wallet ? Date.now() : 0,
   })
   unlockAchievements()
+  // Restore any cosmetics this identity already paid for (e.g. on another
+  // device). Server truth, best-effort; never blocks the login.
+  void syncEntitlements()
   play('click')
   buzz('light')
+}
+
+/**
+ * Reconciles owned cosmetics with the server's verified record for the current
+ * identity. Only ever adds — the server is the authority on what was paid for,
+ * and this is what makes purchases follow the player across devices.
+ */
+export async function syncEntitlements(): Promise<void> {
+  const s = getState()
+  if (s.loginMethod !== 'telegram' && s.loginMethod !== 'base') return
+  const owned = await fetchEntitlements(s)
+  if (owned.length === 0) return
+  setState((state) => {
+    const merged = [...new Set([...state.ownedCosmetics, ...owned])]
+    if (merged.length === state.ownedCosmetics.length) return {}
+    return { ownedCosmetics: merged }
+  })
 }
 
 export async function claimAchievement(id: AchievementId): Promise<ActionResult> {

@@ -149,7 +149,7 @@ export interface AchievementRecord {
 
 export type CosmeticCategory = 'outfit' | 'desk' | 'monitor' | 'room' | 'tool'
 
-export type DonationPaymentProvider = 'base' | 'telegram-stars' | 'ton'
+export type DonationPaymentProvider = 'base' | 'telegram-stars'
 
 export interface CosmeticDef {
   id: string

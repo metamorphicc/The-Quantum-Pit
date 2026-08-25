@@ -1,53 +1,24 @@
 /* ==========================================================================
-   Base cosmetic checkout
+   Base cosmetic checkout — build the payment transaction.
 
-   Returns a prepared USDC-on-Base transfer transaction. The browser asks the
-   connected Base Account to send it; this function never sees private keys.
+   Returns a prepared USDC-on-Base transfer to the treasury. The browser asks
+   the connected Base Account to send it; this function never sees private keys.
+   Prices come from the server catalogue, never the request body.
 
-   Vercel Environment Variables:
+   The grant does NOT happen here. After the wallet broadcasts the tx, the
+   client calls /api/checkout/base-verify, which confirms it onchain.
 
-     BASE_COSMETIC_TREASURY_ADDRESS   required. Your Base wallet address that
-                                      receives cosmetic payments.
+   Env: TREASURY_ADDRESS (or legacy BASE_COSMETIC_TREASURY_ADDRESS).
    ========================================================================== */
 
-interface Req {
-  method?: string
-  body?: unknown
-}
-interface Res {
-  status: (code: number) => Res
-  json: (body: unknown) => void
-  end: (body?: string) => void
-}
+import type { Req, Res } from '../_lib/http'
+import { parseBody } from '../_lib/http'
+import { treasuryAddress } from '../_lib/env'
+import { getProduct } from '../_lib/products'
+import { BASE_USDC } from '../_lib/base-rpc'
 
-declare const process: { env: Record<string, string | undefined> }
-
-const BASE_USDC = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
 const TRANSFER_SELECTOR = 'a9059cbb'
-
-const PRODUCTS: Record<string, { name: string; priceUsd: number }> = {
-  cos_outfit_founder_hoodie: { name: 'Founder Hoodie', priceUsd: 2.99 },
-  cos_desk_carbon: { name: 'Carbon Desk', priceUsd: 3.99 },
-  cos_monitor_ultrawide: { name: 'Ultrawide Monitor', priceUsd: 4.99 },
-  cos_tool_founder_mug: { name: 'Founder Mug', priceUsd: 1.99 },
-  cos_room_city_loft: { name: 'City Loft Skin', priceUsd: 6.99 },
-  cos_room_neon_quant: { name: 'Neon Quant Sign', priceUsd: 9.99 },
-}
-
-function parseBody(body: unknown): Record<string, unknown> {
-  if (typeof body === 'string') {
-    try {
-      return JSON.parse(body) as Record<string, unknown>
-    } catch {
-      return {}
-    }
-  }
-  return body && typeof body === 'object' ? (body as Record<string, unknown>) : {}
-}
-
-function cleanAddress(address: string): string | null {
-  return /^0x[a-fA-F0-9]{40}$/.test(address) ? address : null
-}
+const BASE_CHAIN_ID = '0x2105'
 
 function uint256Hex(value: bigint): string {
   return value.toString(16).padStart(64, '0')
@@ -57,40 +28,36 @@ function addressArg(address: string): string {
   return address.toLowerCase().replace(/^0x/, '').padStart(64, '0')
 }
 
-function usdcUnits(priceUsd: number): bigint {
-  return BigInt(Math.round(priceUsd * 1_000_000))
-}
-
 export default async function handler(req: Req, res: Res): Promise<void> {
+  const treasury = treasuryAddress()
+
   if (req.method !== 'POST') {
     res.status(200).json({
       ok: true,
       what: 'Quantum Pit Base cosmetic checkout',
-      configured: Boolean(cleanAddress(process.env.BASE_COSMETIC_TREASURY_ADDRESS ?? '')),
+      configured: Boolean(treasury),
       token: BASE_USDC,
     })
     return
   }
 
-  const treasury = cleanAddress(process.env.BASE_COSMETIC_TREASURY_ADDRESS ?? '')
   if (!treasury) {
-    res.status(500).json({ error: 'BASE_COSMETIC_TREASURY_ADDRESS is not configured.' })
+    res.status(500).json({ error: 'Treasury address is not configured.' })
     return
   }
 
   const body = parseBody(req.body)
-  const productId = typeof body.productId === 'string' ? body.productId : ''
-  const product = PRODUCTS[productId]
+  const product = getProduct(body.productId)
   if (!product) {
     res.status(400).json({ error: 'Unknown cosmetic product.' })
     return
   }
 
-  const amount = usdcUnits(product.priceUsd)
+  const amount = product.usdcUnits
   const data = `0x${TRANSFER_SELECTOR}${addressArg(treasury)}${uint256Hex(amount)}`
 
   res.status(200).json({
-    productId,
+    productId: product.id,
     productName: product.name,
     token: BASE_USDC,
     to: BASE_USDC,
@@ -98,5 +65,6 @@ export default async function handler(req: Req, res: Res): Promise<void> {
     value: '0x0',
     amount: amount.toString(),
     currency: 'USDC',
+    chainId: BASE_CHAIN_ID,
   })
 }
