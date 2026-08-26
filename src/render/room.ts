@@ -25,6 +25,7 @@ export const SCENE = {
 
 export const HOTSPOTS = {
   hero: { x: 74, y: VOID_H + 118, w: 44, h: 66 },
+  board: { x: 9, y: VOID_H + 36, w: 32, h: 55 },
   urn: { x: 144, y: VOID_H + 142, w: 42, h: 38 },
   terminal: { x: 26, y: VOID_H + 58, w: 140, h: 70 },
   bed: { x: 4, y: VOID_H + 148, w: 50, h: 34 },
@@ -36,7 +37,7 @@ export const HOTSPOTS = {
 export type HotspotName = keyof typeof HOTSPOTS
 
 export function hitTest(x: number, y: number): HotspotName | null {
-  const order: HotspotName[] = ['hero', 'urn', 'terminal', 'bed', 'torchL', 'torchR', 'door']
+  const order: HotspotName[] = ['hero', 'board', 'urn', 'terminal', 'bed', 'torchL', 'torchR', 'door']
   for (const name of order) {
     const h = HOTSPOTS[name]
     if (x >= h.x && x <= h.x + h.w && y >= h.y && y <= h.y + h.h) return name

@@ -527,6 +527,25 @@ export function claimableCount(state: SaveData): number {
   return n
 }
 
+/** The few quests worth surfacing on the desk HUD: claimable first, then the
+    ones closest to done. Fully-claimed drop out, so `done` alone means it is
+    waiting to be claimed. */
+export function trackedTasks(state: SaveData, limit = 3): TaskView[] {
+  const all: TaskView[] = [
+    ...PERIODS.flatMap((period) => buildBucketViews(state, period)),
+    ...buildMilestoneViews(state),
+  ]
+  return all
+    .filter((v) => !v.claimed)
+    .sort((a, b) => {
+      const ad = a.done ? 1 : 0
+      const bd = b.done ? 1 : 0
+      if (ad !== bd) return bd - ad // claimable first
+      return b.pct - a.pct // then nearest completion
+    })
+    .slice(0, limit)
+}
+
 /** Reward broken into display chips. Icons match the rest of the HUD:
     credits are shards, bankroll is a coin, XP is a star. */
 export function rewardChips(reward: TaskReward): { icon: IconName; text: string }[] {

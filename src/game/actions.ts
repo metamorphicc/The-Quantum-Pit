@@ -260,6 +260,30 @@ export function setScreen(screen: ScreenId): void {
   setBackButton(screen === 'room' || screen === 'boot' ? null : () => setScreen('room'))
 }
 
+/* --------------------------------------------------------------------------
+   The quest window — a dim-and-dismiss overlay, not a screen. It only ever
+   opens from the room, where the back button is already null, so close can
+   safely restore that baseline.
+   -------------------------------------------------------------------------- */
+
+export function openQuests(): void {
+  if (getState().questOpen) return
+  // Opening is the natural moment to roll any window that lapsed while away —
+  // the 1s tick deliberately leaves this alone.
+  refreshTasks()
+  setState({ questOpen: true })
+  play('click')
+  buzz('light')
+  setBackButton(() => closeQuests())
+}
+
+export function closeQuests(): void {
+  if (!getState().questOpen) return
+  setState({ questOpen: false })
+  play('back')
+  setBackButton(null)
+}
+
 export function completeOnboarding(classId: TraderClassId, nameInput?: string): ActionResult {
   const klass = traderClassById(classId)
   if (!klass) return refusal('Pick a desk first.')

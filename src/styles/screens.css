@@ -157,6 +157,15 @@
   white-space: nowrap;
 }
 
+/* Four tabs across a ~316px panel: shrink type so "Milestones" fits unclipped. */
+.tabs--quest .tab {
+  min-height: 34px;
+  padding: 6px 2px;
+  gap: 3px;
+  font-size: 8px;
+  letter-spacing: 0.04em;
+}
+
 /* ==========================================================================
    BOOT / TITLE
    ========================================================================== */
@@ -1020,6 +1029,94 @@
   letter-spacing: 0;
   text-shadow: none;
   overflow: visible;
+}
+
+/* --------------------------------------------------------------------------
+   Quest tracker — the always-on desk HUD, pinned to the right of the room.
+   Anchored to .screen.room (not .room__stage, which clips). No safe-area
+   vars: .screen already sits inside .app's safe-area padding.
+   -------------------------------------------------------------------------- */
+.quest-tracker {
+  position: absolute;
+  top: 48px;
+  right: 8px;
+  z-index: 8;
+  width: min(150px, 46%);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0;
+  background: none;
+  border: 0;
+  text-align: left;
+}
+
+.room.is-tutorial .quest-tracker {
+  display: none;
+}
+
+.quest-tracker__head {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 5px;
+  background: rgba(5, 8, 13, 0.84);
+  border: 2px solid var(--ink);
+  color: var(--bone);
+  font-size: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  text-shadow: 1px 1px 0 var(--ink);
+}
+
+.quest-tracker__badge {
+  margin-left: auto;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 3px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gold-lit, #f2b53c);
+  color: #1a1206;
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  font-size: 8px;
+  letter-spacing: 0;
+  text-shadow: none;
+}
+
+.quest-track {
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 5px;
+  background: rgba(5, 8, 13, 0.84);
+  border: 2px solid var(--ink);
+}
+
+.quest-track__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 8px;
+  color: var(--bone-dim);
+}
+
+.quest-track__pct {
+  font-size: 8px;
+  color: var(--bone-deep);
+  font-variant-numeric: tabular-nums;
+}
+
+.quest-track.is-claimable {
+  border-color: #3c7d50;
+  box-shadow: 0 0 0 2px rgba(123, 216, 143, 0.28);
+}
+
+.quest-track.is-claimable .quest-track__pct {
+  color: var(--gold-lit);
 }
 
 /* ==========================================================================

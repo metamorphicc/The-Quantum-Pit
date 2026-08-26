@@ -47,7 +47,6 @@ export type ScreenId =
   | 'rig'
   | 'shop'
   | 'profile'
-  | 'tasks'
   | 'settings'
 
 /* ==========================================================================
@@ -435,6 +434,8 @@ export interface SaveData {
 
 export interface GameState extends SaveData {
   screen: ScreenId
+  /** whether the quest window overlay is open — transient UI, not persisted */
+  questOpen: boolean
   activity: Activity
   /** actionId -> epoch ms when it becomes usable again */
   cooldowns: Record<string, number>

@@ -7,8 +7,9 @@ import { PixelIcon } from '../components/PixelIcon'
 import { PixelPanel } from '../components/PixelPanel'
 import { Ribbon } from '../components/Ribbon'
 import { RoomCanvas } from '../components/RoomCanvas'
+import { QuestTracker } from '../components/QuestTracker'
 import { SpeechBox } from '../components/SpeechBox'
-import { completeOnboarding, cooldownLeft, doAction, isAlarming, setScreen, statusLine } from '../game/actions'
+import { completeOnboarding, cooldownLeft, doAction, isAlarming, openQuests, setScreen, statusLine } from '../game/actions'
 import {
   ACTIONS,
   BANKROLL_BAR,
@@ -285,7 +286,7 @@ export function RoomScreen() {
             <PixelIcon name="warden" size={14} />
             <span>Record</span>
           </button>
-          <button type="button" className="navbtn" onClick={() => setScreen('tasks')}>
+          <button type="button" className="navbtn" onClick={() => openQuests()}>
             <PixelIcon name="check" size={14} />
             <span>Tasks</span>
             {claimableTasks > 0 ? <span className="navbtn__badge">{claimableTasks}</span> : null}
@@ -296,6 +297,8 @@ export function RoomScreen() {
           </button>
         </nav>
       </div>
+
+      {!tutorialOpen ? <QuestTracker /> : null}
 
       {tutorialOpen ? (
         <div className={`tutorial tutorial--${tutorial.target}`} role="dialog" aria-modal="true">

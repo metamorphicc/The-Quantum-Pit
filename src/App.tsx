@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { AchievementToasts } from './components/AchievementToasts'
+import { QuestWindow } from './components/QuestWindow'
 import { Toast } from './components/Toast'
 import { saveNow, syncFromCloud, refreshTasks } from './game/actions'
 import { tick, useGame } from './game/store'
@@ -12,7 +13,6 @@ import { RoomScreen } from './screens/RoomScreen'
 import { ScanScreen } from './screens/ScanScreen'
 import { SettingsScreen } from './screens/SettingsScreen'
 import { ShopScreen } from './screens/ShopScreen'
-import { TasksScreen } from './screens/TasksScreen'
 import { initTelegram } from './telegram/telegram'
 
 /* ==========================================================================
@@ -73,8 +73,8 @@ export function App() {
       {screen === 'bet' ? <BetScreen /> : null}
       {screen === 'shop' ? <ShopScreen /> : null}
       {screen === 'profile' ? <ProfileScreen /> : null}
-      {screen === 'tasks' ? <TasksScreen /> : null}
       {screen === 'settings' ? <SettingsScreen /> : null}
+      <QuestWindow />
       <AchievementToasts />
       <Toast />
     </div>

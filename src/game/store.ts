@@ -16,6 +16,7 @@ function createInitialState(): GameState {
   return {
     ...save,
     screen: 'boot',
+    questOpen: false,
     activity: { kind: 'idle', startedAt: now, duration: 0 },
     cooldowns: {},
     awayMs,

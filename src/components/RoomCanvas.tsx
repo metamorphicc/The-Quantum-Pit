@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { checkPnl, doAction, propLine, say, setScreen } from '../game/actions'
+import { checkPnl, doAction, openQuests, propLine, say, setScreen } from '../game/actions'
 import { burst, onFx } from '../game/fx'
 import { play } from '../game/sound'
 import { getState } from '../game/store'
@@ -165,6 +165,9 @@ export function RoomCanvas() {
       case 'terminal':
         say(propLine('terminal'))
         setScreen('scan')
+        break
+      case 'board':
+        openQuests()
         break
       case 'urn':
         say(propLine('urn'))
