@@ -12,6 +12,7 @@ import type {
 } from './types'
 import { P } from '../styles/palette'
 import type { IconName } from '../components/PixelIcon'
+import { freshTasks } from './tasks'
 
 /* ==========================================================================
    World
@@ -30,7 +31,7 @@ export const GAME_VERSION = '2.0.0'
 export const SAVE_KEY_PREFIX = 'ktw.save.v1:'
 export const SAVE_KEY_LEGACY = 'ktw.save.v1'
 export const CLOUD_SAVE_KEY = 'ktw_save_v1'
-export const SAVE_VERSION = 10
+export const SAVE_VERSION = 11
 
 /** Longest name the player may give him. */
 export const NAME_MAX = 18
@@ -1021,6 +1022,7 @@ export function freshSave(now: number): SaveData {
     look: { head: 'head_none', cloak: 'cloak_rag', blade: 'blade_steel' },
     ownedCosmetics: [],
     activeCosmetics: {},
+    tasks: freshTasks(now),
     markets: [],
     marketsAt: 0,
     hedgeUntil: 0,

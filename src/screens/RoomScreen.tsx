@@ -23,6 +23,7 @@ import {
   sanitizeName,
 } from '../game/config'
 import { bankrollHealth, useGameState } from '../game/store'
+import { claimableCount } from '../game/tasks'
 import { formatCash, formatSeconds } from '../game/util'
 import type { TraderClassId } from '../game/types'
 
@@ -82,6 +83,7 @@ export function RoomScreen() {
   const level = levelFromXp(s.xp)
   const career = careerStatusForLevel(level)
   const broke = s.bankroll <= 0
+  const claimableTasks = claimableCount(s)
   const inTicket = s.activity.kind === 'bet'
   const hedgeOn = now < s.hedgeUntil
   const heatHigh = s.stats.heat >= STAT_HIGH
@@ -282,6 +284,11 @@ export function RoomScreen() {
           <button type="button" className="navbtn" onClick={() => setScreen('profile')}>
             <PixelIcon name="warden" size={14} />
             <span>Record</span>
+          </button>
+          <button type="button" className="navbtn" onClick={() => setScreen('tasks')}>
+            <PixelIcon name="check" size={14} />
+            <span>Tasks</span>
+            {claimableTasks > 0 ? <span className="navbtn__badge">{claimableTasks}</span> : null}
           </button>
           <button type="button" className="navbtn" onClick={() => setScreen('settings')}>
             <PixelIcon name="gear" size={14} />

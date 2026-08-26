@@ -47,6 +47,7 @@ export type ScreenId =
   | 'rig'
   | 'shop'
   | 'profile'
+  | 'tasks'
   | 'settings'
 
 /* ==========================================================================
@@ -283,6 +284,80 @@ export interface TradeResult {
 }
 
 /* ==========================================================================
+   Tasks
+
+   Four buckets. Daily/weekly/monthly reset on rolling windows; milestones are
+   permanent career steps. A task's progress is derived — never instrumented —
+   from the cumulative counters below plus XP/level. See game/tasks.ts.
+   ========================================================================== */
+
+export type TaskPeriod = 'daily' | 'weekly' | 'monthly'
+
+export type TaskCategory = TaskPeriod | 'milestone'
+
+/** All monotonic — that is what lets a periodic task read as current-baseline. */
+export type TaskMetric =
+  | 'bets'
+  | 'wins'
+  | 'losses'
+  | 'scans'
+  | 'researches'
+  | 'hedges'
+  | 'recovers'
+  | 'taps'
+  | 'xp'
+  | 'level'
+  | 'bestStreak'
+
+/** What completing a task pays out, drawn from the existing economy. Cosmetics
+    are deliberately absent: those stay paid-only and carry no power. */
+export interface TaskReward {
+  credits?: number
+  bankroll?: number
+  xp?: number
+}
+
+export interface TaskDef {
+  id: string
+  category: TaskCategory
+  name: string
+  desc: string
+  icon: IconName
+  metric: TaskMetric
+  /** progress needed within the window (periodic) or absolute total (milestone) */
+  target: number
+  reward: TaskReward
+}
+
+export interface TaskBucketState {
+  /** the window index this bucket tracks; a change triggers a roll */
+  period: number
+  /** counter snapshot captured when the window opened; progress = now - baseline */
+  baseline: Partial<Record<TaskMetric, number>>
+  /** ids claimed within the current window */
+  claimed: string[]
+}
+
+export interface TasksState {
+  daily: TaskBucketState
+  weekly: TaskBucketState
+  monthly: TaskBucketState
+  /** milestone ids claimed — permanent, never reset */
+  milestones: string[]
+}
+
+/** A resolved task ready to render: definition plus live progress. */
+export interface TaskView {
+  def: TaskDef
+  progress: number
+  target: number
+  done: boolean
+  claimed: boolean
+  /** 0..100 for the progress bar */
+  pct: number
+}
+
+/* ==========================================================================
    Persisted save
    ========================================================================== */
 
@@ -316,6 +391,8 @@ export interface SaveData {
   /** paid cosmetic ids; pure presentation, never gameplay power */
   ownedCosmetics: string[]
   activeCosmetics: ActiveCosmetics
+  /** daily/weekly/monthly + milestone progress; see game/tasks.ts */
+  tasks: TasksState
   /** the board as last scanned */
   markets: MarketState[]
   /** epoch ms of the last scan */

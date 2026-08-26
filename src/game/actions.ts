@@ -23,6 +23,13 @@ import {
   sanitizeName,
 } from './config'
 import { ACHIEVEMENT_BY_ID, eligibleAchievementIds, type AchievementContext } from './achievements'
+import {
+  PERIODS,
+  findTaskView,
+  periodIndex,
+  snapshotBaseline,
+  taskById,
+} from './tasks'
 import { COPY } from './copy'
 import { achievementToast, burst, emitFx, floatText, toast } from './fx'
 import {
@@ -56,6 +63,7 @@ import type {
   RigBonus,
   StatKey,
   Stats,
+  TaskReward,
   TradeResult,
   TraderClassId,
 } from './types'
@@ -1026,6 +1034,89 @@ export async function claimAchievement(id: AchievementId): Promise<ActionResult>
     notify('error')
     return refusal(msg)
   }
+}
+
+/* ==========================================================================
+   Tasks
+   ========================================================================== */
+
+/**
+ * Roll any periodic bucket whose window has advanced. A new window snapshots the
+ * current counters as its baseline, so progress restarts from zero. Cheap and
+ * idempotent — with no roll due it touches nothing. Called on boot and whenever
+ * the player returns to the app or opens the Tasks screen, deliberately NOT on
+ * the 1s tick, so a completed-but-unclaimed task is never yanked away mid-view.
+ */
+export function refreshTasks(now = Date.now()): void {
+  const s = getState()
+  let changed = false
+  const tasks = { ...s.tasks }
+  for (const period of PERIODS) {
+    const idx = periodIndex(period, now)
+    if (tasks[period].period !== idx) {
+      tasks[period] = { period: idx, baseline: snapshotBaseline(s), claimed: [] }
+      changed = true
+    }
+  }
+  if (changed) setState({ tasks })
+}
+
+/** Pays a task reward into the economy and floats the feedback. */
+function grantTaskReward(reward: TaskReward): void {
+  const before = getState()
+  const beforeLevel = levelFromXp(before.xp)
+  const xp = Math.max(0, before.xp + (reward.xp ?? 0))
+  setState({
+    credits: before.credits + (reward.credits ?? 0),
+    bankroll: before.bankroll + (reward.bankroll ?? 0),
+    xp,
+  })
+  if (reward.bankroll) showCash(reward.bankroll)
+  if (reward.credits) showCredits(reward.credits)
+  if (reward.xp) floatText(`+${reward.xp} XP`, 'credit')
+
+  // XP rewards can push past a level line; mirror the level-up beat from a fill.
+  const afterLevel = levelFromXp(xp)
+  if (afterLevel > beforeLevel) {
+    toast('Level up', 'good', `Level ${afterLevel}: ${careerStatusForLevel(afterLevel)}`)
+    unlockAchievements()
+  }
+}
+
+/**
+ * Claim a completed task. Rolls first so a just-expired window can't be claimed,
+ * verifies the task is genuinely done and unclaimed, records the claim against
+ * the right bucket (or the permanent milestone list), then pays out.
+ */
+export function claimTask(id: string): ActionResult {
+  refreshTasks()
+  const def = taskById(id)
+  if (!def) return refusal('That task is not active right now.')
+
+  const view = findTaskView(getState(), id)
+  if (!view) return refusal('That task is not active right now.')
+  if (view.claimed) return refusal('Already claimed.')
+  if (!view.done) {
+    play('deny')
+    return refusal('Not done yet.')
+  }
+
+  setState((s) => {
+    const tasks = { ...s.tasks }
+    if (def.category === 'milestone') {
+      tasks.milestones = Array.from(new Set([...tasks.milestones, id]))
+    } else {
+      const bucket = tasks[def.category]
+      tasks[def.category] = { ...bucket, claimed: Array.from(new Set([...bucket.claimed, id])) }
+    }
+    return { tasks }
+  })
+
+  grantTaskReward(def.reward)
+  play('fanfare')
+  notify('success')
+  toast('Task complete', 'good', def.name)
+  return { ok: true, message: def.name }
 }
 
 /* ==========================================================================
