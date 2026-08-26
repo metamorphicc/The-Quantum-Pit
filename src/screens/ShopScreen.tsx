@@ -332,9 +332,9 @@ function CosmeticDetail({
             <PixelButton
               key={provider}
               label={`Buy with ${providerLabel(provider)}`}
-              sublabel={provider === 'base' ? `$${cosmetic.priceUsd.toFixed(2)}` : provider === 'telegram-stars' ? `${cosmetic.priceStars} Stars` : 'TON checkout'}
-              icon={provider === 'base' ? 'coin' : provider === 'telegram-stars' ? 'shard' : 'bolt'}
-              variant={provider === 'ton' ? 'ghost' : 'gold'}
+              sublabel={provider === 'base' ? `$${cosmetic.priceUsd.toFixed(2)}` : `${cosmetic.priceStars} Stars`}
+              icon={provider === 'base' ? 'coin' : 'shard'}
+              variant="gold"
               size="lg"
               full
               disabled={buying !== null}

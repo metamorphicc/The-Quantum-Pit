@@ -1,16 +1,17 @@
 /* ==========================================================================
-   Telegram bot webhook — the only server-side code in this project.
+   Telegram bot webhook.
 
-   It exists for one reason: somebody types /start in the chat and should get
-   an answer instead of silence. Everything else about the game is client-side.
-
-   Runs as a Vercel Function (see the `api/` convention). It is a stub on
-   purpose: no database, no state, no user tracking. Each request is answered
-   and forgotten.
+   Two jobs:
+     1. Chat handling — somebody types /start and gets the intro + Mini App
+        button instead of silence.
+     2. Payments — this is the trustworthy half of the Telegram Stars rail.
+        Telegram calls this webhook (not the client) for pre_checkout_query and
+        successful_payment, so the grant is decided here from Telegram's own
+        signed update, never from the client saying "I paid".
 
    Environment variables (Vercel → Project → Settings → Environment Variables):
 
-     BOT_TOKEN          required. From @BotFather.
+     TELEGRAM_BOT_TOKEN required. From @BotFather. (Legacy BOT_TOKEN still read.)
      WEBHOOK_SECRET     optional but recommended. Same value you pass as
                         `secret_token` when registering the webhook; requests
                         without it are rejected.
@@ -18,7 +19,13 @@
                         deployment's own production URL.
      START_IMAGE_URL    optional. Absolute URL of the /start picture. Defaults
                         to `<APP_URL>/start-banner.png`.
+     KV_REST_API_URL / KV_REST_API_TOKEN (or UPSTASH_*) — payment store. Stars
+                        purchases are only granted when this is configured.
    ========================================================================== */
+
+import { botToken, webhookSecret } from './_lib/env'
+import { getProduct } from './_lib/products'
+import { claimOnce, grantEntitlement, keys, storeConfigured } from './_lib/store'
 
 /** Minimal shape of the Vercel Node request/response — avoids a dependency. */
 interface Req {
@@ -83,7 +90,7 @@ function keyboard(): unknown {
 }
 
 async function callBot(method: string, payload: Record<string, unknown>): Promise<boolean> {
-  const token = process.env.BOT_TOKEN
+  const token = botToken()
   if (!token) return false
   try {
     const r = await fetch(`https://api.telegram.org/bot${token}/${method}`, {
@@ -141,36 +148,124 @@ function parseBody(body: unknown): Record<string, any> | null {
   return typeof body === 'object' ? (body as Record<string, any>) : null
 }
 
+/* --------------------------------------------------------------------------
+   Payments
+   -------------------------------------------------------------------------- */
+
+/** Pulls the productId out of the invoice payload we set when creating it. */
+function payloadProductId(raw: unknown): string {
+  if (typeof raw !== 'string') return ''
+  try {
+    const parsed = JSON.parse(raw) as { productId?: unknown }
+    return typeof parsed.productId === 'string' ? parsed.productId : ''
+  } catch {
+    return ''
+  }
+}
+
+/** A pre-checkout is approved only if the item and Star amount still match. */
+function validatePreCheckout(pcq: Record<string, any>): boolean {
+  if (pcq?.currency !== 'XTR') return false
+  const product = getProduct(payloadProductId(pcq?.invoice_payload))
+  if (!product) return false
+  return typeof pcq?.total_amount === 'number' && pcq.total_amount === product.priceStars
+}
+
+/**
+ * Records a completed Stars payment and grants the cosmetic to the payer.
+ * Idempotent: the charge id is claimed once, so a replayed update is a no-op.
+ * Throws only on store/network failure, so the handler can return non-200 and
+ * let Telegram retry — a validation miss returns quietly instead.
+ */
+async function grantFromPayment(message: Record<string, any>): Promise<void> {
+  const sp = message?.successful_payment
+  const chargeId = typeof sp?.telegram_payment_charge_id === 'string' ? sp.telegram_payment_charge_id : ''
+  const product = getProduct(payloadProductId(sp?.invoice_payload))
+  const payerId = message?.from?.id
+  if (!chargeId || !product || typeof payerId !== 'number') return
+  if (!storeConfigured()) return
+
+  const uid = String(payerId)
+  const record = JSON.stringify({
+    rail: 'telegram-stars',
+    productId: product.id,
+    uid,
+    chargeId,
+    amount: typeof sp?.total_amount === 'number' ? sp.total_amount : product.priceStars,
+    at: Date.now(),
+  })
+
+  // SADD is idempotent, so granting before recording is safe under retries.
+  await grantEntitlement(keys.tgEntitlements(uid), product.id)
+  const fresh = await claimOnce(keys.tgPayment(chargeId), record)
+
+  if (fresh) {
+    const chatId = message?.chat?.id
+    if (typeof chatId === 'number') {
+      await callBot('sendMessage', {
+        chat_id: chatId,
+        text: `Unlocked: ${product.name}. Pure style, zero edge.`,
+      })
+    }
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+
 export default async function handler(req: Req, res: Res): Promise<void> {
   // A GET is handy for eyeballing that the function deployed at all.
   if (req.method !== 'POST') {
     res.status(200).json({
       ok: true,
       what: 'Quantum Pit bot webhook',
-      configured: Boolean(process.env.BOT_TOKEN),
+      configured: Boolean(botToken()),
+      payments: storeConfigured(),
       app: appUrl() || null,
     })
     return
   }
 
-  const secret = process.env.WEBHOOK_SECRET
+  const secret = webhookSecret()
   if (secret && header(req, 'x-telegram-bot-api-secret-token') !== secret) {
     res.status(401).end()
     return
   }
 
   const update = parseBody(req.body)
-  const preCheckoutId: unknown = update?.pre_checkout_query?.id
-  if (typeof preCheckoutId === 'string') {
-    await callBot('answerPreCheckoutQuery', {
-      pre_checkout_query_id: preCheckoutId,
-      ok: true,
-    })
+
+  // 1. Pre-checkout — must be answered within seconds, and only for a real
+  //    item at the price we set.
+  const pcq = update?.pre_checkout_query
+  if (pcq && typeof pcq.id === 'string') {
+    const ok = validatePreCheckout(pcq)
+    await callBot(
+      'answerPreCheckoutQuery',
+      ok
+        ? { pre_checkout_query_id: pcq.id, ok: true }
+        : {
+            pre_checkout_query_id: pcq.id,
+            ok: false,
+            error_message: 'This item is no longer available at that price.',
+          },
+    )
     res.status(200).end()
     return
   }
 
   const message = update?.message ?? update?.edited_message
+
+  // 2. Successful payment — grant the item. Return 500 on a store failure so
+  //    Telegram retries; the grant is idempotent, so retries are safe.
+  if (message?.successful_payment) {
+    try {
+      await grantFromPayment(message)
+      res.status(200).end()
+    } catch {
+      res.status(500).end()
+    }
+    return
+  }
+
   const chatId: unknown = message?.chat?.id
   const text: string = typeof message?.text === 'string' ? message.text : ''
 

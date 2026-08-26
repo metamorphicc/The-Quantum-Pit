@@ -11,3 +11,4 @@ dist-ssr
 .env.local
 swarm-launch-video/
 .video_analysis/
+.deck_analysis/

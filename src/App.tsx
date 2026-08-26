@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { AchievementToasts } from './components/AchievementToasts'
 import { Toast } from './components/Toast'
-import { saveNow, syncFromCloud } from './game/actions'
+import { saveNow, syncFromCloud, refreshTasks } from './game/actions'
 import { tick, useGame } from './game/store'
 import { BetScreen } from './screens/BetScreen'
 import { BootScreen } from './screens/BootScreen'
@@ -12,6 +12,7 @@ import { RoomScreen } from './screens/RoomScreen'
 import { ScanScreen } from './screens/ScanScreen'
 import { SettingsScreen } from './screens/SettingsScreen'
 import { ShopScreen } from './screens/ShopScreen'
+import { TasksScreen } from './screens/TasksScreen'
 import { initTelegram } from './telegram/telegram'
 
 /* ==========================================================================
@@ -33,6 +34,9 @@ export function App() {
   // game clock: decay, activity expiry, cooldown countdowns
   useEffect(() => {
     tick()
+    // Roll any task window that lapsed while the app was closed. Done here on
+    // boot (not on every tick) so it is a one-off catch-up, not a hot path.
+    refreshTasks()
     const id = window.setInterval(() => tick(), 1000)
     return () => window.clearInterval(id)
   }, [])
@@ -40,8 +44,10 @@ export function App() {
   // catch up immediately when the WebView comes back, and flush the save
   useEffect(() => {
     const onVisible = () => {
-      if (document.visibilityState === 'visible') tick()
-      else saveNow()
+      if (document.visibilityState === 'visible') {
+        tick()
+        refreshTasks()
+      } else saveNow()
     }
     const onHide = () => saveNow()
     document.addEventListener('visibilitychange', onVisible)
@@ -67,6 +73,7 @@ export function App() {
       {screen === 'bet' ? <BetScreen /> : null}
       {screen === 'shop' ? <ShopScreen /> : null}
       {screen === 'profile' ? <ProfileScreen /> : null}
+      {screen === 'tasks' ? <TasksScreen /> : null}
       {screen === 'settings' ? <SettingsScreen /> : null}
       <AchievementToasts />
       <Toast />

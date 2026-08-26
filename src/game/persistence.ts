@@ -22,10 +22,15 @@ import type {
   MarketState,
   SaveData,
   Stats,
+  TaskBucketState,
+  TaskMetric,
+  TaskPeriod,
+  TasksState,
   TraderClassId,
 } from './types'
 import { clamp } from './util'
 import { ACHIEVEMENT_BY_ID } from './achievements'
+import { snapshotBaseline } from './tasks'
 import {
   cloudAvailable,
   cloudGet,
@@ -142,6 +147,10 @@ function migrate(input: Partial<SaveData>, base: SaveData): SaveData {
     num(input.tally?.bets, 0) > 0 ||
     num(input.tally?.scans, 0) > 0
   const traderClass = readTraderClass(input.traderClass)
+  // Pulled out of the return so the task baselines can key off the migrated
+  // totals, not the fresh-save zeros in `base`.
+  const xp = Math.max(0, Math.floor(num(input.xp, base.xp)))
+  const tally = { ...base.tally, ...(input.tally ?? {}) }
 
   return {
     version: SAVE_VERSION,
@@ -157,7 +166,7 @@ function migrate(input: Partial<SaveData>, base: SaveData): SaveData {
     achievements: readAchievements(input.achievements),
     stats,
     bankroll,
-    xp: Math.max(0, Math.floor(num(input.xp, base.xp))),
+    xp,
     peakBankroll: Math.max(bankroll, num(input.peakBankroll, base.peakBankroll)),
     credits: Math.max(0, num(input.credits, base.credits)),
     stash: Object.keys(stash).length ? stash : base.stash,
@@ -171,14 +180,68 @@ function migrate(input: Partial<SaveData>, base: SaveData): SaveData {
     },
     ownedCosmetics: readOwnedCosmetics(input.ownedCosmetics),
     activeCosmetics: readActiveCosmetics(input.activeCosmetics),
+    tasks: readTasks(input.tasks, { xp, tally }, base.tasks),
     markets: readMarkets(input.markets),
     marketsAt: num(input.marketsAt, base.marketsAt),
     hedgeUntil: num(input.hedgeUntil, base.hedgeUntil),
     lastVisit: num(input.lastVisit, base.lastVisit),
     firstVisit: num(input.firstVisit, base.firstVisit),
     visits: num(input.visits, base.visits),
-    tally: { ...base.tally, ...(input.tally ?? {}) },
+    tally,
     settings: { ...base.settings, ...(input.settings ?? {}) },
+  }
+}
+
+/** Task ids are opaque strings; keep the unique, well-typed ones. */
+function readTaskStringArray(input: unknown): string[] {
+  if (!Array.isArray(input)) return []
+  return Array.from(new Set(input.filter((x): x is string => typeof x === 'string')))
+}
+
+/** A stored baseline is a metric->count map; drop anything non-numeric. */
+function readTaskBaseline(input: unknown): Partial<Record<TaskMetric, number>> {
+  const out: Partial<Record<TaskMetric, number>> = {}
+  if (!input || typeof input !== 'object') return out
+  for (const [k, v] of Object.entries(input)) {
+    if (typeof v === 'number' && Number.isFinite(v)) out[k as TaskMetric] = v
+  }
+  return out
+}
+
+/**
+ * Rebuild the task record. When a stored bucket still names the current window
+ * we keep its baseline and claims; otherwise (rolled, absent, or a pre-v11 save
+ * with no tasks at all) we snapshot the migrated counters as the new baseline,
+ * so upgrading mid-career doesn't hand out a window's worth of instant clears.
+ * Milestones are absolute, so keeping only the claimed ids is enough — a
+ * veteran can rightly claim the career steps they have already passed.
+ */
+function readTasks(
+  input: unknown,
+  metrics: Pick<SaveData, 'xp' | 'tally'>,
+  fallback: TasksState,
+): TasksState {
+  const src = input && typeof input === 'object' ? (input as Record<string, unknown>) : null
+  const bucket = (key: TaskPeriod): TaskBucketState => {
+    const fb = fallback[key]
+    const raw = src?.[key]
+    if (raw && typeof raw === 'object') {
+      const r = raw as Partial<TaskBucketState>
+      if (typeof r.period === 'number' && r.period === fb.period) {
+        return {
+          period: fb.period,
+          baseline: readTaskBaseline(r.baseline),
+          claimed: readTaskStringArray(r.claimed),
+        }
+      }
+    }
+    return { period: fb.period, baseline: snapshotBaseline(metrics), claimed: [] }
+  }
+  return {
+    daily: bucket('daily'),
+    weekly: bucket('weekly'),
+    monthly: bucket('monthly'),
+    milestones: readTaskStringArray(src?.milestones),
   }
 }
 
@@ -328,6 +391,7 @@ export function writeSave(data: SaveData, immediateCloud = false): void {
     look: data.look,
     ownedCosmetics: data.ownedCosmetics,
     activeCosmetics: data.activeCosmetics,
+    tasks: data.tasks,
     markets: data.markets,
     marketsAt: data.marketsAt,
     hedgeUntil: data.hedgeUntil,
