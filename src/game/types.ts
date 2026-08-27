@@ -288,6 +288,19 @@ export interface TaskView {
   /** 0..100 for the progress bar */
   pct: number
 }
+
+export interface DailyLoginReward {
+  day: number
+  bankroll: number
+  credits?: number
+  xp?: number
+}
+
+export interface DailyLoginState {
+  streak: number
+  bestStreak: number
+  lastClaimDay: number
+}
 export interface SaveData {
   version: number
   /** what the player calls him - renameable, defaults to WORLD.hero */
@@ -320,6 +333,7 @@ export interface SaveData {
   activeCosmetics: ActiveCosmetics
   /** daily/weekly/monthly + milestone progress; see game/tasks.ts */
   tasks: TasksState
+  dailyLogin: DailyLoginState
   /** the board as last scanned */
   markets: MarketState[]
   /** epoch ms of the last scan */

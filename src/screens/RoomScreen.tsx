@@ -9,7 +9,16 @@ import { Ribbon } from '../components/Ribbon'
 import { RoomCanvas } from '../components/RoomCanvas'
 import { QuestTracker } from '../components/QuestTracker'
 import { SpeechBox } from '../components/SpeechBox'
-import { completeOnboarding, cooldownLeft, doAction, isAlarming, openQuests, setScreen, statusLine } from '../game/actions'
+import {
+  claimDailyLoginReward,
+  completeOnboarding,
+  cooldownLeft,
+  doAction,
+  isAlarming,
+  openQuests,
+  setScreen,
+  statusLine,
+} from '../game/actions'
 import {
   ACTIONS,
   BANKROLL_BAR,
@@ -23,6 +32,7 @@ import {
   levelFromXp,
   sanitizeName,
 } from '../game/config'
+import { nextDailyLogin, rewardLabel } from '../game/daily'
 import { bankrollHealth, useGameState } from '../game/store'
 import { claimableCount } from '../game/tasks'
 import { formatCash, formatSeconds } from '../game/util'
@@ -71,6 +81,7 @@ export function RoomScreen() {
   const [tutorialStep, setTutorialStep] = useState(0)
   const [pickedClass, setPickedClass] = useState<TraderClassId>('crypto')
   const [nameDraft, setNameDraft] = useState(s.name)
+  const [dailyOpen, setDailyOpen] = useState(true)
   const now = Date.now()
   const day = Math.max(1, Math.floor((now - s.firstVisit) / 86_400_000) + 1)
   const stashCount = Object.values(s.stash).reduce((a, b) => a + b, 0)
@@ -85,6 +96,13 @@ export function RoomScreen() {
   const primaryId = broke ? 'sidejob' : 'bet'
   const tutorialOpen = !s.onboarded
   const tutorial = TUTORIAL_STEPS[Math.min(tutorialStep, TUTORIAL_STEPS.length - 1)]!
+  const daily = nextDailyLogin(s, now)
+  const dailyVisible = s.onboarded && dailyOpen && daily.claimable
+
+  const claimDaily = () => {
+    claimDailyLoginReward()
+    setDailyOpen(false)
+  }
 
   const plainStatus = (() => {
     if (broke) return 'Bankroll is gone. Take a side job.'
@@ -284,6 +302,18 @@ export function RoomScreen() {
             <span>Tasks</span>
             {claimableTasks > 0 ? <span className="navbtn__badge">{claimableTasks}</span> : null}
           </button>
+          <button
+            type="button"
+            className={`navbtn navbtn--daily ${daily.claimable ? 'is-ready' : ''}`}
+            onClick={() => {
+              if (daily.claimable) claimDaily()
+              else setDailyOpen(true)
+            }}
+          >
+            <PixelIcon name="star" size={14} />
+            <span>Daily</span>
+            <span className="navbtn__badge">{daily.claimable ? '!' : s.dailyLogin.streak}</span>
+          </button>
           <button type="button" className="navbtn" onClick={() => setScreen('settings')}>
             <PixelIcon name="gear" size={14} />
             <span>Office</span>
@@ -292,6 +322,47 @@ export function RoomScreen() {
       </div>
 
       {!tutorialOpen ? <QuestTracker /> : null}
+
+      {dailyVisible ? (
+        <div className="daily-login" role="dialog" aria-modal="true" aria-label="Daily login reward">
+          <div className="daily-login__scrim" onClick={() => setDailyOpen(false)} aria-hidden="true" />
+          <PixelPanel variant="darkwood" pad="md" rivets className="daily-login__panel">
+            <div className="daily-login__head">
+              <div className="daily-login__icon">
+                <PixelIcon name="star" size={24} />
+              </div>
+              <div>
+                <p className="t-label t-dim">Daily login streak</p>
+                <h2>Day {daily.streak}</h2>
+              </div>
+            </div>
+            <p className="daily-login__copy">
+              Show up every day. Miss a day and the streak starts over.
+            </p>
+            <div className="daily-login__reward">
+              <span>Today's desk bonus</span>
+              <b>{rewardLabel(daily.reward)}</b>
+            </div>
+            <div className="daily-login__track" aria-label="Weekly streak progress">
+              {Array.from({ length: 7 }, (_, i) => {
+                const day = i + 1
+                const active = day <= daily.reward.day
+                return (
+                  <span key={day} className={active ? 'is-on' : ''}>
+                    {day}
+                  </span>
+                )
+              })}
+            </div>
+            <div className="daily-login__actions">
+              <button type="button" className="daily-login__skip" onClick={() => setDailyOpen(false)}>
+                Later
+              </button>
+              <PixelButton label="Claim" icon="coin" variant="gold" size="sm" onClick={claimDaily} />
+            </div>
+          </PixelPanel>
+        </div>
+      ) : null}
 
       {tutorialOpen ? (
         <div className={`tutorial tutorial--${tutorial.target}`} role="dialog" aria-modal="true">

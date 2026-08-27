@@ -31,6 +31,7 @@ import {
   taskById,
 } from './tasks'
 import { COPY } from './copy'
+import { nextDailyLogin, rewardLabel } from './daily'
 import { achievementToast, burst, emitFx, floatText, toast } from './fx'
 import {
   clearSave,
@@ -1045,6 +1046,46 @@ export function claimTask(id: string): ActionResult {
   notify('success')
   toast('Task complete', 'good', def.name)
   return { ok: true, message: def.name }
+}
+
+export function claimDailyLoginReward(): ActionResult {
+  const s = getState()
+  const daily = nextDailyLogin(s)
+  if (!daily.claimable) {
+    play('deny')
+    return refusal('Daily reward already claimed.')
+  }
+
+  const reward = daily.reward
+  const beforeLevel = levelFromXp(s.xp)
+  const xp = s.xp + (reward.xp ?? 0)
+  setState({
+    bankroll: s.bankroll + reward.bankroll,
+    credits: s.credits + (reward.credits ?? 0),
+    xp,
+    dailyLogin: {
+      streak: daily.streak,
+      bestStreak: Math.max(s.dailyLogin.bestStreak, daily.streak),
+      lastClaimDay: daily.today,
+    },
+  })
+
+  showCash(reward.bankroll)
+  showCredits(reward.credits ?? 0)
+  if (reward.xp) floatText(`+${reward.xp} XP`, 'credit')
+  play('fanfare')
+  notify('success')
+  burst('coin', { count: 12, power: 1.2 })
+  toast('Daily streak', 'good', `Day ${daily.streak}: ${rewardLabel(reward)}`)
+  say(`Daily streak ${daily.streak}. The desk remembers who shows up.`)
+
+  const afterLevel = levelFromXp(xp)
+  if (afterLevel > beforeLevel) {
+    toast('Level up', 'good', `Level ${afterLevel}: ${careerStatusForLevel(afterLevel)}`)
+    unlockAchievements()
+  }
+
+  return { ok: true, message: rewardLabel(reward) }
 }
 export function toggleSetting(key: 'sound' | 'haptics' | 'reduceMotion'): void {
   setState((s) => ({ settings: { ...s.settings, [key]: !s.settings[key] } }))

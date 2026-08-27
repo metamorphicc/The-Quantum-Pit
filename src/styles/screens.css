@@ -725,7 +725,7 @@
 
 .room__nav {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 5px;
 }
 
@@ -992,6 +992,159 @@
   letter-spacing: 0;
   text-shadow: none;
   overflow: visible;
+}
+
+.navbtn--daily.is-ready {
+  color: var(--gold-lit);
+  border-color: var(--gold-dark);
+  box-shadow:
+    inset 0 2px 0 0 rgba(255, 235, 190, 0.18),
+    0 3px 0 0 var(--ink),
+    0 0 0 2px rgba(216, 172, 63, 0.18);
+}
+
+.daily-login {
+  position: absolute;
+  inset: 0;
+  z-index: 42;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(var(--sa-top) + 12px) 14px calc(var(--sa-bottom) + 14px);
+}
+
+.daily-login__scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(2, 4, 8, 0.58);
+}
+
+.daily-login__panel {
+  position: relative;
+  width: min(100%, 340px);
+  box-shadow:
+    0 0 0 3px rgba(216, 172, 63, 0.18),
+    0 12px 0 rgba(0, 0, 0, 0.48);
+}
+
+.daily-login__head {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+}
+
+.daily-login__icon {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  background: #101820;
+  border: var(--bd) solid var(--ink);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 235, 190, 0.16),
+    inset 0 -3px 0 rgba(0, 0, 0, 0.48);
+}
+
+.daily-login h2 {
+  margin: 2px 0 0;
+  color: var(--bone);
+  font-family: var(--font-title);
+  font-size: 18px;
+  line-height: 1.05;
+  text-transform: uppercase;
+  letter-spacing: 0;
+  text-shadow:
+    2px 2px 0 var(--ink),
+    3px 3px 0 rgba(0, 0, 0, 0.58);
+}
+
+.daily-login__copy {
+  margin: 10px 0 0;
+  color: var(--bone-dim);
+  font-size: 9px;
+  line-height: 1.45;
+  text-shadow: 1px 1px 0 var(--ink);
+}
+
+.daily-login__reward {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 10px;
+  padding: 8px;
+  background: #0b1118;
+  border: 2px solid var(--ink);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 235, 190, 0.08),
+    inset 3px 0 0 var(--gold-dark);
+}
+
+.daily-login__reward span {
+  color: var(--bone-deep);
+  font-size: 8px;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  text-shadow: 1px 1px 0 var(--ink);
+}
+
+.daily-login__reward b {
+  color: var(--gold-lit);
+  font-size: 11px;
+  line-height: 1.25;
+  text-shadow: 1px 1px 0 var(--ink);
+}
+
+.daily-login__track {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-top: 10px;
+}
+
+.daily-login__track span {
+  min-height: 24px;
+  display: grid;
+  place-items: center;
+  background: #0b1118;
+  border: 2px solid var(--ink);
+  color: var(--bone-deep);
+  font-size: 9px;
+  text-shadow: 1px 1px 0 var(--ink);
+}
+
+.daily-login__track span.is-on {
+  background: #1e2a24;
+  color: var(--gold-lit);
+  box-shadow: inset 0 -3px 0 rgba(216, 172, 63, 0.28);
+}
+
+.daily-login__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.daily-login__skip {
+  min-height: 34px;
+  background: #101820;
+  border: var(--bd) solid var(--ink);
+  color: var(--bone-dim);
+  font-family: var(--font-ui);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  text-shadow: 1px 1px 0 var(--ink);
+  box-shadow:
+    inset 0 2px 0 rgba(199, 242, 255, 0.08),
+    0 3px 0 var(--ink);
+}
+
+.daily-login__skip:active {
+  transform: translateY(3px);
+  box-shadow: inset 0 2px 0 rgba(255, 235, 190, 0.06);
 }
 .quest-tracker {
   position: absolute;

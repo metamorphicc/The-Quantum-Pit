@@ -27,10 +27,12 @@ import type {
   TaskPeriod,
   TasksState,
   TraderClassId,
+  DailyLoginState,
 } from './types'
 import { clamp } from './util'
 import { ACHIEVEMENT_BY_ID } from './achievements'
 import { snapshotBaseline } from './tasks'
+import { dayIndex } from './daily'
 import {
   cloudAvailable,
   cloudGet,
@@ -169,6 +171,7 @@ function migrate(input: Partial<SaveData>, base: SaveData): SaveData {
     ownedCosmetics: readOwnedCosmetics(input.ownedCosmetics),
     activeCosmetics: readActiveCosmetics(input.activeCosmetics),
     tasks: readTasks(input.tasks, { xp, tally }, base.tasks),
+    dailyLogin: readDailyLogin(input.dailyLogin, base.dailyLogin),
     markets: readMarkets(input.markets),
     marketsAt: num(input.marketsAt, base.marketsAt),
     hedgeUntil: num(input.hedgeUntil, base.hedgeUntil),
@@ -177,6 +180,18 @@ function migrate(input: Partial<SaveData>, base: SaveData): SaveData {
     visits: num(input.visits, base.visits),
     tally,
     settings: { ...base.settings, ...(input.settings ?? {}) },
+  }
+}
+
+function readDailyLogin(input: unknown, fallback: DailyLoginState): DailyLoginState {
+  if (!input || typeof input !== 'object') return fallback
+  const raw = input as Partial<DailyLoginState>
+  const today = dayIndex(Date.now())
+  const lastClaimDay = Math.floor(num(raw.lastClaimDay, fallback.lastClaimDay))
+  return {
+    streak: Math.max(0, Math.floor(num(raw.streak, 0))),
+    bestStreak: Math.max(0, Math.floor(num(raw.bestStreak, 0))),
+    lastClaimDay: Math.min(today, lastClaimDay),
   }
 }
 
@@ -375,6 +390,7 @@ export function writeSave(data: SaveData, immediateCloud = false): void {
     ownedCosmetics: data.ownedCosmetics,
     activeCosmetics: data.activeCosmetics,
     tasks: data.tasks,
+    dailyLogin: data.dailyLogin,
     markets: data.markets,
     marketsAt: data.marketsAt,
     hedgeUntil: data.hedgeUntil,

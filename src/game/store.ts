@@ -55,6 +55,7 @@ function saveSlice(): SaveData {
     ownedCosmetics: state.ownedCosmetics,
     activeCosmetics: state.activeCosmetics,
     tasks: state.tasks,
+    dailyLogin: state.dailyLogin,
     markets: state.markets,
     marketsAt: state.marketsAt,
     hedgeUntil: state.hedgeUntil,
