@@ -1,9 +1,3 @@
-/* ==========================================================================
-   Telegram WebApp wrapper
-   Everything is optional-chained: the app must also run in a plain browser
-   (that is how you develop it) and inside older Telegram clients.
-   ========================================================================== */
-
 export type HapticStyle = 'light' | 'medium' | 'heavy' | 'rigid' | 'soft'
 export type HapticNotification = 'error' | 'success' | 'warning'
 
@@ -102,12 +96,6 @@ function versionAtLeast(target: string): boolean {
 }
 
 const BG = '#120c08'
-
-/* --------------------------------------------------------------------------
-   Layout: expose Telegram's viewport + insets as CSS variables so the
-   stylesheet can stay declarative.
-   -------------------------------------------------------------------------- */
-
 function applyViewport(): void {
   const app = wa()
   const root = document.documentElement
@@ -167,14 +155,9 @@ export function initTelegram(): void {
     app.onEvent('safeAreaChanged', applyViewport)
     app.onEvent('contentSafeAreaChanged', applyViewport)
   } catch {
-    /* older client — degrade quietly */
+    /* older client - degrade quietly */
   }
 }
-
-/* --------------------------------------------------------------------------
-   Back button — driven by the screen stack. Bot API 6.1+.
-   -------------------------------------------------------------------------- */
-
 let backHandler: (() => void) | null = null
 
 export function setBackButton(handler: (() => void) | null): void {
@@ -192,11 +175,6 @@ export function setBackButton(handler: (() => void) | null): void {
     bb.hide()
   }
 }
-
-/* --------------------------------------------------------------------------
-   Haptics — Bot API 6.1+, gated on the player's setting by the caller
-   -------------------------------------------------------------------------- */
-
 /** The SDK warns on every call in older clients, so check the version first. */
 function haptics(): TelegramWebApp['HapticFeedback'] | undefined {
   if (!versionAtLeast('6.1')) return undefined
@@ -278,14 +256,6 @@ export function openTelegramExternalLink(url: string): void {
   }
   window.open(url, '_blank', 'noopener,noreferrer')
 }
-
-/* --------------------------------------------------------------------------
-   CloudStorage — Bot API 6.9+. A key/value store tied to the player's Telegram
-   account, so progress follows them to another device with no backend of ours.
-   Promise wrappers; every one of them resolves rather than rejects, because a
-   failed sync must never break the game.
-   -------------------------------------------------------------------------- */
-
 function cloud(): TelegramWebApp['CloudStorage'] | undefined {
   if (!versionAtLeast('6.9')) return undefined
   return wa()?.CloudStorage

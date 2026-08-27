@@ -2,14 +2,6 @@ import { PixelIcon } from './PixelIcon'
 import { openQuests } from '../game/actions'
 import { useGameState } from '../game/store'
 import { claimableCount, trackedTasks } from '../game/tasks'
-
-/* ==========================================================================
-   The desk quest tracker: a small, non-blocking HUD pinned to the right of
-   the room. Shows the few most relevant quests (claimable first) and taps
-   through to the full quest window. Hidden during onboarding and when there
-   is nothing to track.
-   ========================================================================== */
-
 export function QuestTracker() {
   const s = useGameState()
   const tracked = trackedTasks(s, 3)

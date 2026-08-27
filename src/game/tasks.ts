@@ -10,21 +10,6 @@ import type {
   TaskView,
 } from './types'
 import { levelFromXp } from './config'
-
-/* ==========================================================================
-   Tasks
-
-   Four buckets. Daily/weekly/monthly are periodic — they roll on a fixed
-   rolling window and their progress is measured against a baseline captured
-   when the window opened. Milestones are the career ladder: permanent,
-   one-time, measured against absolute cumulative totals.
-
-   Nothing here instruments the game loop. Progress is derived from the same
-   monotonic counters the tally already keeps (bets, wins, scans, …) plus XP,
-   so the whole system is a read over existing state plus a small persisted
-   record of what has been claimed.
-   ========================================================================== */
-
 export const PERIODS: TaskPeriod[] = ['daily', 'weekly', 'monthly']
 
 /** Rolling window lengths. Timezone-free on purpose: a window is just a slice
@@ -50,12 +35,6 @@ export function periodIndex(period: TaskPeriod, now: number): number {
 export function periodEndsAt(period: TaskPeriod, now: number): number {
   return (periodIndex(period, now) + 1) * PERIOD_MS[period]
 }
-
-/* --------------------------------------------------------------------------
-   Metrics — every one is monotonic (only ever goes up), which is what lets a
-   periodic task measure "this window's activity" as current minus baseline.
-   -------------------------------------------------------------------------- */
-
 /** Counters that periodic baselines snapshot. Milestones read absolute totals. */
 export const PERIODIC_METRICS: TaskMetric[] = [
   'bets',
@@ -122,15 +101,6 @@ export function freshTasks(now: number): TasksState {
     milestones: [],
   }
 }
-
-/* --------------------------------------------------------------------------
-   The catalogue
-
-   Periodic pools are larger than what shows at once; the active few rotate by
-   window index, so the set is stable within a window and shifts across them.
-   Rewards climb with the cadence: a daily is a nudge, a milestone is a payday.
-   -------------------------------------------------------------------------- */
-
 export const DAILY_TASKS: TaskDef[] = [
   {
     id: 'd_taps',
@@ -473,11 +443,6 @@ const TASK_BY_ID: Record<string, TaskDef> = Object.fromEntries(
 export function taskById(id: string): TaskDef | undefined {
   return TASK_BY_ID[id]
 }
-
-/* --------------------------------------------------------------------------
-   Views — everything a screen or the nav badge needs, derived from state.
-   -------------------------------------------------------------------------- */
-
 function toView(def: TaskDef, raw: number, claimed: boolean): TaskView {
   const progress = Math.max(0, Math.min(def.target, raw))
   return {
@@ -513,7 +478,7 @@ export function findTaskView(state: SaveData, id: string): TaskView | null {
   return buildBucketViews(state, def.category).find((v) => v.def.id === id) ?? null
 }
 
-/** How many tasks are done and waiting to be claimed — drives the nav badge. */
+/** How many tasks are done and waiting to be claimed - drives the nav badge. */
 export function claimableCount(state: SaveData): number {
   let n = 0
   for (const period of PERIODS) {

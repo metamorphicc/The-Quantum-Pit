@@ -19,15 +19,6 @@ import { getState, useGameState } from '../game/store'
 import { formatCash, formatPrice, formatProb, formatSigned } from '../game/util'
 import type { Side } from '../game/types'
 import { DESK, drawDeskScene, type TerminalMode } from '../render/terminal'
-
-/* ==========================================================================
-   The ticket desk — pick a side, pick a size, watch the machine decide.
-
-   Everything here is simulated. The quote is generated locally, the coin is
-   weighted by that quote plus his Edge, and the money is a number in a save
-   file. No order ever leaves the device.
-   ========================================================================== */
-
 export function BetScreen() {
   const s = useGameState()
   const [side, setSide] = useState<Side | null>(null)
@@ -61,9 +52,7 @@ export function BetScreen() {
       : side
         ? 'armed'
         : 'idle'
-
-  /* ---- the stage ---- */
-  const canvasRef = useRef<HTMLCanvasElement>(null)
+const canvasRef = useRef<HTMLCanvasElement>(null)
   // read through a ref so the 60fps loop is never rebuilt by a re-render
   const view = useRef({ mode, prob: quote.prob, side })
   view.current = { mode, prob: quote.prob, side }
@@ -235,21 +224,21 @@ export function BetScreen() {
           <PixelButton
             label={
               resolving
-                ? 'Printing…'
+                ? 'Printing...'
                 : !side
                   ? 'Pick a side'
                   : !affordable
                     ? 'Not enough bankroll'
                     : !focused
                       ? 'Too fried to size it'
-                      : `Send it · $${stake} ${side.toUpperCase()}`
+                      : `Send it - $${stake} ${side.toUpperCase()}`
             }
             icon="terminal"
             variant="ember"
             size="lg"
             full
             disabled={!canFill}
-            sublabel={`Fee ${Math.round(feeRate * 1000) / 10}% · costs ${cost.focus} focus`}
+            sublabel={`Fee ${Math.round(feeRate * 1000) / 10}% - costs ${cost.focus} focus`}
             onClick={submit}
           />
         </PixelPanel>
@@ -285,7 +274,7 @@ export function BetScreen() {
                 <li>
                   <PixelIcon name="brush" size={12} />
                   <span>Hedge dampened it</span>
-                  <b>·</b>
+                  <b>-</b>
                 </li>
               ) : null}
             </ul>

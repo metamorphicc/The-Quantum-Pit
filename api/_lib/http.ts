@@ -1,11 +1,4 @@
-/* ==========================================================================
-   Shared HTTP helpers for the Vercel Functions in api/.
-
-   Files under api/_lib are NOT routed as endpoints (Vercel ignores the
-   leading underscore); they are plain modules the handlers import.
-   ========================================================================== */
-
-/** Minimal shape of the Vercel Node request/response — avoids a dependency. */
+/** Minimal shape of the Vercel Node request/response - avoids a dependency. */
 export interface Req {
   method?: string
   headers: Record<string, string | string[] | undefined>

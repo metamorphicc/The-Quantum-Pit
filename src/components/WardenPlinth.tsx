@@ -4,13 +4,6 @@ import { getState } from '../game/store'
 import { dither, px, pxa, pxLine, type Ctx } from '../render/draw'
 import { drawWardenPortrait } from '../render/warden'
 import { P } from '../styles/palette'
-
-/* ==========================================================================
-   The trader, standing in a lit alcove. Used by the Rig screen and the service
-   record. Draws at native pixel size and lets CSS do the upscale, so the
-   sprite stays crisp at any panel width.
-   ========================================================================== */
-
 export interface WardenPlinthProps {
   /** pixel width of the backing buffer */
   width?: number

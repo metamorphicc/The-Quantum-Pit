@@ -63,15 +63,6 @@ export function burst(
 export function floatText(text: string, tone: FloatTone = 'plain'): void {
   emitFx({ type: 'float', text, tone })
 }
-
-/* ==========================================================================
-   Toasts
-
-   A separate bus, because the floating labels live inside the room's stage and
-   toasts have to survive on every screen — the bet screen in particular, which
-   is where the grim one-liners actually land.
-   ========================================================================== */
-
 export type ToastTone = 'good' | 'bad' | 'plain'
 
 export interface ToastEvent {
@@ -96,14 +87,6 @@ export function toast(text: string, tone: ToastTone = 'plain', sub?: string): vo
   const event: ToastEvent = { id: toastId++, text, tone, sub }
   for (const h of toastHandlers) h(event)
 }
-
-/* ==========================================================================
-   Achievement popups
-
-   Separate from normal toasts: unlocks should read like a collected badge,
-   not like another trade result.
-   ========================================================================== */
-
 export interface AchievementToastEvent {
   id: number
   name: string

@@ -19,10 +19,7 @@ export interface PixelPanelProps {
   style?: React.CSSProperties
 }
 
-/**
- * The base surface of the whole UI: thick dark border, plank/stone texture,
- * hard inner bevel, optional carved header and corner studs.
- */
+/** Base surface for pixel panels: thick border, hard bevel, optional header. */
 export function PixelPanel({
   children,
   variant = 'wood',

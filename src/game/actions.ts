@@ -77,11 +77,6 @@ import {
   setBackButton,
   type HapticStyle,
 } from '../telegram/telegram'
-
-/* ==========================================================================
-   Feedback helpers (respect the player's settings)
-   ========================================================================== */
-
 function buzz(kind: HapticStyle = 'light'): void {
   if (getState().settings.haptics) haptic(kind)
 }
@@ -156,11 +151,6 @@ function unlockAchievements(context: AchievementContext = {}): void {
     toast('Achievement unlocked', 'good', def.name)
   }
 }
-
-/* ==========================================================================
-   Equipped rig bonuses
-   ========================================================================== */
-
 const RIG_BONUS_KEYS: (keyof RigBonus)[] = [
   'scanFocusSave',
   'scanHeatSave',
@@ -246,11 +236,6 @@ function actionGainWithRig(actionId: string, gain: Partial<Stats>): Partial<Stat
   }
   return gain
 }
-
-/* ==========================================================================
-   Navigation
-   ========================================================================== */
-
 export function setScreen(screen: ScreenId): void {
   if (getState().screen === screen) return
   play(screen === 'room' ? 'back' : 'click')
@@ -259,16 +244,9 @@ export function setScreen(screen: ScreenId): void {
   // Telegram's native back button mirrors the in-app one
   setBackButton(screen === 'room' || screen === 'boot' ? null : () => setScreen('room'))
 }
-
-/* --------------------------------------------------------------------------
-   The quest window — a dim-and-dismiss overlay, not a screen. It only ever
-   opens from the room, where the back button is already null, so close can
-   safely restore that baseline.
-   -------------------------------------------------------------------------- */
-
 export function openQuests(): void {
   if (getState().questOpen) return
-  // Opening is the natural moment to roll any window that lapsed while away —
+  // Opening is the natural moment to roll any window that lapsed while away -
   // the 1s tick deliberately leaves this alone.
   refreshTasks()
   setState({ questOpen: true })
@@ -322,11 +300,6 @@ export function openBet(marketId: string | null): void {
   setState({ focusMarket: marketId, lastTrade: null })
   setScreen('bet')
 }
-
-/* ==========================================================================
-   Cooldowns
-   ========================================================================== */
-
 export function cooldownLeft(actionId: string, now = Date.now()): number {
   return Math.max(0, (getState().cooldowns[actionId] ?? 0) - now)
 }
@@ -339,11 +312,6 @@ function setCooldown(actionId: string, ms: number): void {
   if (ms <= 0) return
   setState((s) => ({ cooldowns: { ...s.cooldowns, [actionId]: Date.now() + ms } }))
 }
-
-/* ==========================================================================
-   Refusal — one shape for every "no"
-   ========================================================================== */
-
 function refuse(message: string): ActionResult {
   startActivity('refuse', 620)
   say(message)
@@ -362,14 +330,6 @@ function blockedBy(actionId: string): string | null {
   if (req.max !== undefined && value > req.max) return req.refuse
   return null
 }
-
-/* ==========================================================================
-   Tap him = check the PnL
-
-   Free, endless, and deliberately weak. The window caps how often a thumb can
-   demand another PnL check before he stops performing.
-   ========================================================================== */
-
 export function checkPnl(x?: number, y?: number): void {
   const s = getState()
   const now = Date.now()
@@ -401,15 +361,6 @@ export function checkPnl(x?: number, y?: number): void {
   if (gotCredit) showCredits(1)
   if (s.tally.taps % 4 === 0) say(COPY.pnl())
 }
-
-/* ==========================================================================
-   Room actions
-
-   `recover` and `hedge` resolve on the spot; `research`, `scan` and `bet` open
-   their own screen, gated by the same stat window so a fried desk cannot walk
-   into the ticket screen and size something up.
-   ========================================================================== */
-
 export function doAction(actionId: string): ActionResult {
   const def = ACTIONS[actionId]
   if (!def) return refusal('Nothing happens.')
@@ -476,11 +427,6 @@ export function doAction(actionId: string): ActionResult {
   showCredits(credits)
   return { ok: true, message: '', gain, bankroll: cash, credits }
 }
-
-/* ==========================================================================
-   Research — burn a note from the stash, or just sit and read for free
-   ========================================================================== */
-
 export function useSupply(supplyId: string): ActionResult {
   const supply = SUPPLY_BY_ID[supplyId]
   if (!supply) return refusal('There is nothing to read there.')
@@ -555,14 +501,6 @@ export function deskRead(): ActionResult {
   showGains(gain)
   return { ok: true, message: '', gain }
 }
-
-/* ==========================================================================
-   The board
-
-   Six invented questions. Quotes are generated locally, wander a little on
-   every scan, and are never fetched from anywhere. There is no feed.
-   ========================================================================== */
-
 function rotateMarkets(list: MarketDef[], seed: number): MarketDef[] {
   if (list.length <= 1) return list
   const offset = Math.abs(seed) % list.length
@@ -652,15 +590,6 @@ export function doScan(): ActionResult {
   showGains(gain)
   return { ok: true, message: '', gain }
 }
-
-/* ==========================================================================
-   Simulated fills
-
-   Nothing here touches a real book. The quote is the price of one share, the
-   coin is weighted by that quote plus his Edge, and the money is a number in a
-   save file. That is the whole engine.
-   ========================================================================== */
-
 /** What a ticket would cost and pay, before the coin is thrown. */
 export function previewFill(
   marketId: string,
@@ -686,7 +615,7 @@ export function previewFill(
 
 /**
  * Puts a simulated ticket on. Charges the desk cost immediately, then resolves
- * after a short beat so the reveal has somewhere to land — `lastTrade` appears
+ * after a short beat so the reveal has somewhere to land - `lastTrade` appears
  * on the store when the coin lands, not before.
  */
 export function placeSimBet(marketId: string, side: Side, stake: number): ActionResult {
@@ -705,7 +634,7 @@ export function placeSimBet(marketId: string, side: Side, stake: number): Action
   const slipped = slip > 0.005
 
   // the coin: the quote, tilted toward his side by Edge. Edge does not buy
-  // certainty, it buys a few points — which over enough tickets is the game.
+  // certainty, it buys a few points - which over enough tickets is the game.
   const bonus = equippedRigBonus()
   const klass = traderClassById(s.traderClass)
   const classTilt = klass?.marketBias === def.category ? klass.winBonus : 0
@@ -786,7 +715,7 @@ function resolveFill(result: TradeResult): void {
   showGains(gain)
   floatText(`+${result.xpGained} XP`, 'credit')
 
-  const money = `${formatSigned(result.pnl)} · ${formatCash(bankroll)} left`
+  const money = `${formatSigned(result.pnl)} - ${formatCash(bankroll)} left`
   if (result.won) {
     say(COPY.win())
     play('fanfare')
@@ -812,11 +741,6 @@ function resolveFill(result: TradeResult): void {
     say('No free float. If he wants another ticket, he has to do paid work first.')
   }
 }
-
-/* ==========================================================================
-   Shop
-   ========================================================================== */
-
 function canAfford(price: number, currency: Currency): boolean {
   const s = getState()
   return currency === 'bankroll' ? s.bankroll >= price : s.credits >= price
@@ -866,11 +790,6 @@ export function buyRig(id: string): ActionResult {
   notify('success')
   return { ok: true, message: COPY.buy() }
 }
-
-/* ==========================================================================
-   The rig - visible kit with passive bonuses
-   ========================================================================== */
-
 export function equipRig(id: string): ActionResult {
   const rig = RIG_BY_ID[id]
   if (!rig) return refusal('Nothing to put on.')
@@ -891,11 +810,6 @@ export function unequipSlot(slot: EquipSlot): ActionResult {
   play('back')
   return { ok: true, message: '' }
 }
-
-/* ==========================================================================
-   Donation cosmetics - pure presentation
-   ========================================================================== */
-
 export function equipCosmetic(id: string): ActionResult {
   const cosmetic = DONATION_COSMETIC_BY_ID[id]
   if (!cosmetic) return refusal('Cosmetic not found.')
@@ -959,13 +873,8 @@ export async function buyCosmetic(
     return refusal(msg)
   }
 }
-
-/* ==========================================================================
-   Identity
-   ========================================================================== */
-
 /**
- * Renames him. Returns the name that was actually stored — the input is
+ * Renames him. Returns the name that was actually stored - the input is
  * sanitised, so it may come back trimmed, stripped or replaced by the default.
  */
 export function renameWarden(input: string): string {
@@ -1003,7 +912,7 @@ export function setLoginIdentity(
 
 /**
  * Reconciles owned cosmetics with the server's verified record for the current
- * identity. Only ever adds — the server is the authority on what was paid for,
+ * identity. Only ever adds - the server is the authority on what was paid for,
  * and this is what makes purchases follow the player across devices.
  */
 export async function syncEntitlements(): Promise<void> {
@@ -1059,15 +968,10 @@ export async function claimAchievement(id: AchievementId): Promise<ActionResult>
     return refusal(msg)
   }
 }
-
-/* ==========================================================================
-   Tasks
-   ========================================================================== */
-
 /**
  * Roll any periodic bucket whose window has advanced. A new window snapshots the
  * current counters as its baseline, so progress restarts from zero. Cheap and
- * idempotent — with no roll due it touches nothing. Called on boot and whenever
+ * idempotent - with no roll due it touches nothing. Called on boot and whenever
  * the player returns to the app or opens the Tasks screen, deliberately NOT on
  * the 1s tick, so a completed-but-unclaimed task is never yanked away mid-view.
  */
@@ -1142,11 +1046,6 @@ export function claimTask(id: string): ActionResult {
   toast('Task complete', 'good', def.name)
   return { ok: true, message: def.name }
 }
-
-/* ==========================================================================
-   Settings
-   ========================================================================== */
-
 export function toggleSetting(key: 'sound' | 'haptics' | 'reduceMotion'): void {
   setState((s) => ({ settings: { ...s.settings, [key]: !s.settings[key] } }))
   play('click')
@@ -1167,7 +1066,7 @@ export function saveNow(): void {
 /**
  * Boot-time sync: if this Telegram account has newer progress stored against it
  * (another device, or a reinstall), adopt it. Runs once, and only takes effect
- * while the player is still on the title screen — a late answer must never yank
+ * while the player is still on the title screen - a late answer must never yank
  * the state out from under someone who is already playing.
  */
 export async function syncFromCloud(): Promise<void> {
@@ -1177,19 +1076,11 @@ export async function syncFromCloud(): Promise<void> {
       adoptSave(result.save, result.awayMs)
     }
   } catch {
-    /* offline, unsupported client, malformed payload — local save stands */
+    /* offline, unsupported client, malformed payload - local save stands */
   } finally {
     releaseCloudWrites()
   }
 }
-
-/* ==========================================================================
-   Derived: how he is holding up
-
-   Ordered by what would kill the account first. Heat before everything, then
-   the head, then the thesis, then whether anyone is still quoting him.
-   ========================================================================== */
-
 export type Demeanour = 'sharp' | 'hot' | 'fried' | 'blind' | 'ghosted'
 
 export function demeanour(stats: Stats): Demeanour {

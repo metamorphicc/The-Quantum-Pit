@@ -1,20 +1,3 @@
-/* ==========================================================================
-   Telegram Mini App initData validation.
-
-   initData is the ONLY trustworthy source of a Telegram user's identity on the
-   backend. It is a URL-encoded string signed by Telegram with the bot token.
-   We recompute the HMAC and compare; a match proves the fields came from
-   Telegram and were not forged by the client.
-
-   Algorithm (core.telegram.org/bots/webapps#validating-data):
-     secret_key       = HMAC_SHA256(key="WebAppData", msg=bot_token)
-     expected_hash    = HMAC_SHA256(key=secret_key,  msg=data_check_string)
-     data_check_string = every field except `hash` (and `signature`), sorted by
-                         key, joined "k=v" with "\n".
-
-   Uses WebCrypto (crypto.subtle) so it needs no Node type packages.
-   ========================================================================== */
-
 const encoder = new TextEncoder()
 
 export interface TelegramIdentity {

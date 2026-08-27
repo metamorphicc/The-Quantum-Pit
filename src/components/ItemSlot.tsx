@@ -59,7 +59,7 @@ export function ItemSlot({
     >
       <div className="slot__inner">
         {icon && !empty && <PixelIcon name={icon} size={iconSize} className="slot__icon" />}
-        {empty && <span className="slot__empty-mark">—</span>}
+        {empty && <span className="slot__empty-mark">-</span>}
 
         {locked && (
           <>

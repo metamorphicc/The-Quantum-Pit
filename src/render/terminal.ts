@@ -1,15 +1,5 @@
 import { P } from '../styles/palette'
 import { dither, drawMatrix, lightPool, noise2, outline, px, pxa, pxLine, type Ctx } from './draw'
-
-/* ==========================================================================
-   The ticket desk — a smaller scene for the bet screen. Same stone room and
-   the same two braziers the training pit had; the straw dummy has been carted
-   out and a scavenged cathode terminal put on the table in its place.
-
-   The screen is decoration. It shows three bars, a price and a verdict glyph —
-   never a chart, never a candlestick grid. Nothing on it is fetched.
-   ========================================================================== */
-
 export const DESK = {
   w: 160,
   h: 176,
@@ -23,7 +13,7 @@ const CASE = { x: 38, y: 44, w: 84, h: 84 } as const
 /** The lit phosphor area inside it. */
 const GLASS = { x: 46, y: 52, w: 68, h: 58 } as const
 
-/** Generous tap area over the glass — the whole terminal answers to a tap. */
+/** Generous tap area over the glass - the whole terminal answers to a tap. */
 export function screenHitTest(x: number, y: number): boolean {
   return x >= CASE.x && x <= CASE.x + CASE.w && y >= CASE.y && y <= CASE.y + CASE.h
 }
@@ -40,11 +30,6 @@ const BRAZIER_FLAME: readonly string[][] = [
   ['.d...', '.dcd.', 'dccb.', 'bcccb', 'abbba', '.aaa.'],
   ['...d.', '.dcd.', '.bccd', 'bcccb', 'abbba', '.aaa.'],
 ]
-
-/* --------------------------------------------------------------------------
-   Static layer
-   -------------------------------------------------------------------------- */
-
 function drawBackWall(ctx: Ctx): void {
   px(ctx, 0, 0, DESK.w, DESK.floorY, P.stoneDeep)
   // stone blocks
@@ -147,7 +132,7 @@ function drawTable(ctx: Ctx): void {
   px(ctx, 20, y - 9, 15, 1, P.boneDim)
   for (let i = 0; i < 3; i++) px(ctx, 22, y - 8 + i * 2, 9, 1, P.stoneDeep)
 
-  // candle, right — the one light he actually trusts
+  // candle, right - the one light he actually trusts
   px(ctx, 128, y - 13, 5, 13, P.boneDim)
   px(ctx, 128, y - 13, 5, 1, P.bone)
   px(ctx, 126, y - 1, 9, 2, P.woodDark)
@@ -171,11 +156,6 @@ function getDeskStatic(): HTMLCanvasElement {
   deskStatic = cv
   return deskStatic
 }
-
-/* --------------------------------------------------------------------------
-   The terminal case — also static, the glass is what moves
-   -------------------------------------------------------------------------- */
-
 let caseStatic: HTMLCanvasElement | null = null
 
 function getCaseStatic(): HTMLCanvasElement {
@@ -224,12 +204,7 @@ function getCaseStatic(): HTMLCanvasElement {
   caseStatic = cv
   return caseStatic
 }
-
-/* --------------------------------------------------------------------------
-   The glass
-   -------------------------------------------------------------------------- */
-
-/** A blocky 5x7 glyph set — just enough for YES, NO and the verdicts. */
+/** A blocky 5x7 glyph set - just enough for YES, NO and the verdicts. */
 const GLYPHS: Record<string, readonly string[]> = {
   Y: ['x...x', 'x...x', '.x.x.', '..x..', '..x..', '..x..', '..x..'],
   E: ['xxxxx', 'x....', 'x....', 'xxxx.', 'x....', 'x....', 'xxxxx'],
@@ -283,7 +258,7 @@ export interface TerminalOpts {
   prob: number
   /** the staged side, or null when nothing is on the ticket */
   side: 'yes' | 'no' | null
-  /** how hot he is running, 0..1 — the glass gets noisier */
+  /** how hot he is running, 0..1 - the glass gets noisier */
   heat: number
 }
 
@@ -365,11 +340,6 @@ function drawGlass(ctx: Ctx, o: TerminalOpts): void {
   pxa(ctx, x + 5, y + 4, 12, 1, P.white, 0.12)
   pxa(ctx, x + 5, y + 5, 6, 1, P.white, 0.08)
 }
-
-/* --------------------------------------------------------------------------
-   Public draw
-   -------------------------------------------------------------------------- */
-
 export function drawDeskScene(ctx: Ctx, o: TerminalOpts): void {
   ctx.imageSmoothingEnabled = false
   ctx.drawImage(getDeskStatic(), 0, 0)

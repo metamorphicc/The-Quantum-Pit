@@ -3,13 +3,6 @@ import { STATS, STAT_ORDER } from './config'
 import { loadSave, scheduleSave } from './persistence'
 import type { GameState, SaveData, Stats } from './types'
 import { clamp } from './util'
-
-/* ==========================================================================
-   A tiny observable store. No dependency, no boilerplate.
-   State is immutable: every mutation replaces the object, so React's
-   useSyncExternalStore can compare snapshots by identity.
-   ========================================================================== */
-
 function createInitialState(): GameState {
   const now = Date.now()
   const { save, awayMs } = loadSave(now)
@@ -93,7 +86,7 @@ export function resetState(): void {
 }
 
 /**
- * Swaps in a save that came from somewhere else — currently Telegram's
+ * Swaps in a save that came from somewhere else - currently Telegram's
  * CloudStorage, i.e. this account's progress on another device. Only the
  * persisted half is replaced; the current screen and animation state stay.
  */
@@ -106,11 +99,6 @@ export function adoptSave(save: SaveData, awayMs: number): void {
 export function getSaveSlice(): SaveData {
   return saveSlice()
 }
-
-/* ==========================================================================
-   React bindings
-   ========================================================================== */
-
 export function useGameState(): GameState {
   return useSyncExternalStore(subscribe, getState, getState)
 }
@@ -122,11 +110,6 @@ export function useGameState(): GameState {
 export function useGame<T>(selector: (s: GameState) => T): T {
   return selector(useSyncExternalStore(subscribe, getState, getState))
 }
-
-/* ==========================================================================
-   Stat helpers
-   ========================================================================== */
-
 export function addStats(delta: Partial<Stats>): Stats {
   const stats = { ...state.stats }
   for (const key of STAT_ORDER) {
@@ -137,8 +120,8 @@ export function addStats(delta: Partial<Stats>): Stats {
 }
 
 /**
- * One number for "how is he doing". Heat is inverted — a cold book is a healthy
- * book — so it is folded in as its complement.
+ * One number for "how is he doing". Heat is inverted - a cold book is a healthy
+ * book - so it is folded in as its complement.
  */
 export function overallForm(stats: Stats): number {
   let sum = 0
@@ -158,15 +141,10 @@ export function bankrollHealth(bankroll: number, peak: number): number {
   if (peak <= 0) return 0
   return clamp((bankroll / peak) * 100)
 }
-
-/* ==========================================================================
-   The clock
-   ========================================================================== */
-
 let lastTick = Date.now()
 
 /**
- * Applies real-time drift. Safe to call at any cadence — drift is derived from
+ * Applies real-time drift. Safe to call at any cadence - drift is derived from
  * wall-clock delta, so a backgrounded WebView catches up on the next tick.
  * Drift pauses while he is recovering (that is the point of recovering).
  */

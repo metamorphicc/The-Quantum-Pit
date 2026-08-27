@@ -1,13 +1,5 @@
 import { useMemo } from 'react'
 import { P } from '../styles/palette'
-
-/* ==========================================================================
-   Pixel icons
-   Each icon is an 8x8 character matrix. Rendered as SVG rects with
-   shape-rendering: crispEdges, so they stay hard-edged at any size and need
-   no image assets.
-   ========================================================================== */
-
 const CHARS: Record<string, string> = {
   k: P.ink,
   K: P.shadow,
@@ -42,7 +34,6 @@ const CHARS: Record<string, string> = {
 }
 
 const ART = {
-  // ---- needs -------------------------------------------------------------
   stew: [
     '..kkkk..',
     '.kbbbbk.',
@@ -93,7 +84,6 @@ const ART = {
     '.keeeek.',
     '..kkkk..',
   ],
-  // ---- currency ----------------------------------------------------------
   coin: [
     'kkkkkkkk',
     'kMMMMMMk',
@@ -114,7 +104,6 @@ const ART = {
     '...c....',
     '........',
   ],
-  // ---- actions -----------------------------------------------------------
   bed: [
     '..kkkk..',
     '.kllllk.',
@@ -135,7 +124,7 @@ const ART = {
     'kkkkkkkk',
     '........',
   ],
-  /** a little cathode terminal on a stand — the ticket machine */
+  /** a little cathode terminal on a stand - the ticket machine */
   terminal: [
     'kkkkkkkk',
     'kCMMMCCk',
@@ -156,7 +145,6 @@ const ART = {
     '.c.C.c..',
     '...c....',
   ],
-  // ---- ui ----------------------------------------------------------------
   gear: [
     '..n..n..',
     '.nnnnnn.',
@@ -257,7 +245,6 @@ const ART = {
     'dgddddgd',
     '..dddd..',
   ],
-  // ---- food --------------------------------------------------------------
   bread: [
     '........',
     '..kkkk..',
@@ -328,7 +315,6 @@ const ART = {
     'kCCCCCCk',
     '.kkkkkk.',
   ],
-  // ---- regalia -----------------------------------------------------------
   helm: [
     'kkkkkkkk',
     'kCMMMCkk',
@@ -455,7 +441,7 @@ function runsFor(name: IconName): Run[] {
 
 export interface PixelIconProps {
   name: IconName
-  /** rendered size in px — use multiples of 8 for perfect pixels */
+  /** rendered size in px - use multiples of 8 for perfect pixels */
   size?: number
   className?: string
   /** paints every pixel one colour (silhouette mode) */

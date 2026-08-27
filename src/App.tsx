@@ -14,11 +14,6 @@ import { ScanScreen } from './screens/ScanScreen'
 import { SettingsScreen } from './screens/SettingsScreen'
 import { ShopScreen } from './screens/ShopScreen'
 import { initTelegram } from './telegram/telegram'
-
-/* ==========================================================================
-   App shell: Telegram handshake, the one-second game clock, and the router.
-   ========================================================================== */
-
 export function App() {
   const screen = useGame((s) => s.screen)
   const reduceMotion = useGame((s) => s.settings.reduceMotion)

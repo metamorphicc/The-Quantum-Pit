@@ -1,21 +1,3 @@
-/* ==========================================================================
-   Base cosmetic verification — the authority for the Base rail.
-
-   The client calls this after its wallet broadcasts the USDC transfer. We read
-   the receipt onchain, confirm a Transfer of the product's price to the
-   treasury, and only then grant the entitlement. Idempotent by tx hash, so a
-   replayed request never double-processes.
-
-   Request:  { productId, walletAddress, txHash }
-   Response: 200 { verified:true,  owned:[...] }
-             200 { verified:false, pending:true }   (receipt not yet available)
-             400 { verified:false, error }           (no matching transfer)
-             401 { error }                           (bad address/hash)
-             503 { error }                           (store not configured)
-
-   Env: TREASURY_ADDRESS, BASE_RPC_URL, plus a configured KV store.
-   ========================================================================== */
-
 import type { Req, Res } from '../_lib/http'
 import { asString, parseBody } from '../_lib/http'
 import { baseRpcUrl, treasuryAddress } from '../_lib/env'
@@ -66,7 +48,7 @@ export default async function handler(req: Req, res: Res): Promise<void> {
       minUnits: product.usdcUnits,
     })
   } catch {
-    // Transient RPC trouble — let the client retry.
+    // Transient RPC trouble - let the client retry.
     res.status(200).json({ verified: false, pending: true })
     return
   }

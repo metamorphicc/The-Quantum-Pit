@@ -1,21 +1,3 @@
-/* ==========================================================================
-   Payment store — a thin Redis-over-HTTP client (Upstash / Vercel KV REST).
-
-   Why this exists: entitlements must be decided by the server, not the client.
-   That needs somewhere durable to record "this charge was processed" (so a
-   replayed webhook cannot double-grant) and "this identity owns these items".
-
-   Zero dependencies: the REST API takes a command as a JSON array in the POST
-   body and answers { result } or { error }.
-
-   Configured via either name pair:
-     KV_REST_API_URL       / KV_REST_API_TOKEN          (Vercel KV integration)
-     UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN  (Upstash native)
-
-   Everything fails CLOSED: if the store is not configured, the callers refuse
-   to take payment or grant entitlements rather than trusting the client.
-   ========================================================================== */
-
 declare const process: { env: Record<string, string | undefined> }
 
 interface StoreConfig {
@@ -51,7 +33,7 @@ async function redis(command: (string | number)[]): Promise<unknown> {
 }
 
 /**
- * SET key value NX — records a fact exactly once. Returns true when THIS call
+ * SET key value NX - records a fact exactly once. Returns true when THIS call
  * created the key (first time), false when it already existed (a replay). The
  * value doubles as the stored payment record.
  */
@@ -70,12 +52,6 @@ export async function listEntitlements(entitlementKey: string): Promise<string[]
   const result = await redis(['SMEMBERS', entitlementKey])
   return Array.isArray(result) ? result.filter((x): x is string => typeof x === 'string') : []
 }
-
-/* --------------------------------------------------------------------------
-   Key namespaces. Payment keys hold the record + guarantee idempotency;
-   entitlement keys hold the owned set per identity.
-   -------------------------------------------------------------------------- */
-
 export const keys = {
   tgPayment: (chargeId: string): string => `pay:tg:${chargeId}`,
   basePayment: (txHash: string): string => `pay:base:${txHash.toLowerCase()}`,

@@ -14,14 +14,6 @@ import {
 } from '../game/tasks'
 import type { TaskPeriod, TaskView } from '../game/types'
 import { formatAway } from '../game/util'
-
-/* ==========================================================================
-   The quest window: a dim-and-dismiss overlay over the desk. Same three
-   resetting buckets plus milestones as before, but folded into one tabbed
-   panel so the desk stays visible behind it. Closes on scrim / ✕ / Esc /
-   Telegram back (the last wired up by openQuests).
-   ========================================================================== */
-
 type QuestTab = TaskPeriod | 'milestone'
 
 const TABS: { id: QuestTab; label: string }[] = [
@@ -41,7 +33,7 @@ export function QuestWindow() {
     if (open) setTab('daily')
   }, [open])
 
-  // Esc closes, matching the scrim and ✕ paths
+  // Esc closes, matching the scrim and x paths
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => {

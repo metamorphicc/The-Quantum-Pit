@@ -1,17 +1,6 @@
 import { P } from '../styles/palette'
 import { noise2, px, pxa, pxLine, type Ctx } from './draw'
 import type { ActivityKind, EquippedLook, Stats } from '../game/types'
-
-/* ==========================================================================
-   Old Halvard — an original elderly pixel trader who used to guard a door.
-   Built from primitives instead of a sprite sheet so every pose, every
-   equipment variant and every "fried / cooked / annoyed" state is one set of
-   numbers away. Origin is the point between his boots.
-
-   Body plan (px above the feet):
-     60 head top | 47 chin | 44 shoulders | 29 waist | 17 skirt | 8 knee | 0 sole
-   ========================================================================== */
-
 export const HERO_H = 60
 export const HERO_W = 36
 
@@ -31,7 +20,7 @@ export interface Pose {
   /** hand positions relative to the shoulder */
   armL: { x: number; y: number }
   armR: { x: number; y: number }
-  /** blade angles in radians, measured from the hand */
+  /** tool angles in radians, measured from the hand */
   swordL: number
   swordR: number
   swordLen: number
@@ -39,13 +28,13 @@ export interface Pose {
   capeSway: number
   /** 0..1 strength of the edge aura */
   aura: number
-  /** 0..2 grime — sweat and printer soot, i.e. Heat */
+  /** 0..2 grime - sweat and printer soot, i.e. Heat */
   dirt: number
   /** prop held in the left hand */
   prop: 'none' | 'ledger' | 'slate' | 'chips'
   /** walking legs (0 = still) */
   step: number
-  /** flash frame on the blades */
+  /** flash frame on held tools */
   flash: number
 }
 
@@ -75,11 +64,6 @@ function basePose(): Pose {
     flash: 0,
   }
 }
-
-/* --------------------------------------------------------------------------
-   Pose selection
-   -------------------------------------------------------------------------- */
-
 export interface PoseInput {
   activity: ActivityKind
   /** 0..1 through the current activity */
@@ -225,11 +209,6 @@ export function poseFor({ activity, phase, t, stats }: PoseInput): Pose {
 
   return p
 }
-
-/* --------------------------------------------------------------------------
-   Equipment colour resolution
-   -------------------------------------------------------------------------- */
-
 interface Kit {
   cloak: { dark: string; mid: string; lit: string; ragged: boolean; fur: boolean }
   blade: { core: string; edge: string; glow: string | null; glowMul: number }
@@ -269,11 +248,6 @@ function kitFor(look: EquippedLook): Kit {
 
   return { cloak, blade, head }
 }
-
-/* --------------------------------------------------------------------------
-   Parts
-   -------------------------------------------------------------------------- */
-
 function drawCape(ctx: Ctx, cx: number, groundY: number, pose: Pose, kit: Kit): void {
   const top = groundY - 44 + pose.bob + Math.round(pose.sit * 12)
   const bottom = groundY - 18 - Math.round(pose.sit * 7)
@@ -537,11 +511,6 @@ function drawAura(ctx: Ctx, cx: number, groundY: number, pose: Pose, t: number):
   // ground shimmer
   pxa(ctx, cx - 14, groundY - 3, 28, 2, P.spirit, 0.1 * level)
 }
-
-/* --------------------------------------------------------------------------
-   Public
-   -------------------------------------------------------------------------- */
-
 export function drawWarden(
   ctx: Ctx,
   originX: number,
@@ -570,7 +539,7 @@ export function drawWarden(
   // front arm on top
   drawArm(ctx, cx + 6 + pose.lean, shoulderY, pose.armR)
 
-  // grime streaks on the armour
+  // heat grime on the hoodie
   if (pose.dirt > 0) {
     const a = pose.dirt > 1 ? 0.5 : 0.3
     pxa(ctx, cx - 8, gy - 36, 5, 3, '#4a3520', a)

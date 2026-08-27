@@ -13,14 +13,6 @@ import type {
 import { P } from '../styles/palette'
 import type { IconName } from '../components/PixelIcon'
 import { freshTasks } from './tasks'
-
-/* ==========================================================================
-   World
-
-   A paper-trading sim. Wallets can identify a profile, but never place real
-   orders here. One room, one desk, one beginner trying to become a quant trader.
-   ========================================================================== */
-
 export const GAME_VERSION = '2.0.0'
 
 /**
@@ -66,11 +58,6 @@ export const WORLD = {
   /** printed anywhere the player might forget */
   disclaimer: 'Simulated only. No real money, no real orders.',
 } as const
-
-/* ==========================================================================
-   Stats
-   ========================================================================== */
-
 export const STAT_ORDER: StatKey[] = ['edge', 'focus', 'heat', 'rep']
 export const DESK_STAT_ORDER: StatKey[] = ['edge', 'focus', 'heat']
 
@@ -99,7 +86,7 @@ export const STATS: Record<StatKey, StatMeta> = {
     icon: 'flame',
     color: P.ember,
     colorDark: P.emberDeep,
-    /** heat bleeds off slowly on its own — the gauge cools, it does not decay */
+    /** heat bleeds off slowly on its own - the gauge cools, it does not decay */
     driftPerHour: 5,
     inverted: true,
     warn: 'Heat is high. Hedge or blow the account.',
@@ -135,17 +122,12 @@ export const MAX_OFFLINE_HOURS = 36
 
 /**
  * Offline drift never pushes an eroding gauge below this. Coming back after a
- * week should find a cold, dull desk — not a locked one; the floor sits a little
+ * week should find a cold, dull desk - not a locked one; the floor sits a little
  * above the steepest action requirement (Sim Bet, focus 12) so the live clock
  * cannot immediately erode a returning player out of his own game. Heat is
  * exempt: cooling all the way down while away is the reward for leaving.
  */
 export const OFFLINE_FLOOR = 18
-
-/* ==========================================================================
-   Trader classes
-   ========================================================================== */
-
 export const TRADER_CLASSES: TraderClassDef[] = [
   {
     id: 'crypto',
@@ -206,11 +188,6 @@ export const TRADER_CLASS_BY_ID: Record<TraderClassId, TraderClassDef> = Object.
 export function traderClassById(id: TraderClassId | null | undefined): TraderClassDef | null {
   return id ? (TRADER_CLASS_BY_ID[id] ?? null) : null
 }
-
-/* ==========================================================================
-   Actions
-   ========================================================================== */
-
 export interface ActionDef {
   id: string
   label: string
@@ -304,7 +281,7 @@ export const ACTION_BAR: string[] = ['research', 'hedge', 'recover', 'sidejob', 
 
 /**
  * The free read, offered on the research screen when the stash is empty. Slow
- * and small on purpose — a broke desk still has a way back to an edge, it just
+ * and small on purpose - a broke desk still has a way back to an edge, it just
  * has to sit there and earn it.
  */
 export const DESK_READ = {
@@ -315,11 +292,6 @@ export const DESK_READ = {
 
 /** Past this, more reading does nothing and he says so. */
 export const EDGE_SOFT_CAP = 92
-
-/* ==========================================================================
-   Tapping him = Check PnL
-   ========================================================================== */
-
 export const TAP = {
   focusPerTap: 0.3,
   /** soft cap: max PnL checking per window */
@@ -329,11 +301,6 @@ export const TAP = {
   creditChance: 0.06,
   duration: 620,
 }
-
-/* ==========================================================================
-   The board — mock questions only. Nothing is fetched, ever.
-   ========================================================================== */
-
 export const MARKETS: MarketDef[] = [
   {
     id: 'btc120',
@@ -566,18 +533,10 @@ export const MARKET = {
   quoteTtlMs: 10 * 60_000,
   /** extra slippage taken when filling against a stale quote */
   staleSlip: 0.04,
-  /** quotes never sit at the extremes — nothing is ever certain here */
+  /** quotes never sit at the extremes - nothing is ever certain here */
   minProb: 0.06,
   maxProb: 0.94,
 }
-
-/* ==========================================================================
-   Simulated fills
-
-   Polymarket-style: the quote IS the price of one YES share, so a stake of
-   $25 at 40c buys 62.5 shares that pay $1 each if it resolves your way.
-   ========================================================================== */
-
 export const BET = {
   sizes: [10, 25, 50],
   /** taken off the stake on every fill */
@@ -599,11 +558,6 @@ export const BET = {
   /** below this, the game nudges him toward paid work instead of free money */
   bailout: { floor: 10 },
 }
-
-/* ==========================================================================
-   Career progression
-   ========================================================================== */
-
 export const LEVEL_MAX = 30
 export const XP = {
   win: 100,
@@ -679,11 +633,6 @@ export function xpProgress(xp: number): { level: number; current: number; needed
     pct: level >= LEVEL_MAX ? 100 : Math.min(100, Math.round((current / needed) * 100)),
   }
 }
-
-/* ==========================================================================
-   Notes and signals — the "research" stash. Consumed one at a time.
-   ========================================================================== */
-
 export const SUPPLIES: SupplyDef[] = [
   {
     id: 'orderflow',
@@ -763,13 +712,7 @@ export const SUPPLIES: SupplyDef[] = [
 export const SUPPLY_BY_ID: Record<string, SupplyDef> = Object.fromEntries(
   SUPPLIES.map((s) => [s.id, s]),
 )
-
-/* ==========================================================================
-   The rig — cosmetics. Same three slots the sprite has always had.
-   ========================================================================== */
-
 export const RIGS: RigDef[] = [
-  // ---- headset ----
   {
     id: 'head_none',
     name: 'Messy Hair',
@@ -810,7 +753,6 @@ export const RIGS: RigDef[] = [
     desc: 'Worn by someone who exited at the top. Once. Makes wins travel further.',
     bonus: { winXpAdd: 12, edgeSwingAdd: 0.006 },
   },
-  // ---- coat ----
   {
     id: 'cloak_rag',
     name: 'Home Hoodie',
@@ -851,7 +793,6 @@ export const RIGS: RigDef[] = [
     desc: 'Smoulders faintly. Somehow makes bad fills a little less educationally useless.',
     bonus: { lossXpAdd: 6, heatSlipSave: 0.008 },
   },
-  // ---- desk tools ----
   {
     id: 'blade_steel',
     name: 'Old Keyboard',
@@ -921,13 +862,6 @@ export const SLOT_LABEL: Record<'head' | 'cloak' | 'blade', string> = {
   cloak: 'Coat',
   blade: 'Tools',
 }
-
-/* ==========================================================================
-   Donation cosmetics
-
-   Pure ownership/status. No stats, no edge swing, no bankroll, no XP.
-   ========================================================================== */
-
 export const DONATION_COSMETICS: CosmeticDef[] = [
   {
     id: 'cos_outfit_founder_hoodie',
@@ -994,11 +928,6 @@ export const DONATION_COSMETICS: CosmeticDef[] = [
 export const DONATION_COSMETIC_BY_ID: Record<string, CosmeticDef> = Object.fromEntries(
   DONATION_COSMETICS.map((c) => [c.id, c]),
 )
-
-/* ==========================================================================
-   Fresh save
-   ========================================================================== */
-
 export const START_BANKROLL = 300
 
 export function freshSave(now: number): SaveData {

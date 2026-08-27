@@ -8,13 +8,6 @@ import { HOTSPOTS, SCENE, drawRoom, drawRoomOverlay, hitTest } from '../render/r
 import { drawWarden, poseFor } from '../render/warden'
 import { clamp } from '../game/util'
 import { levelFromXp, progressionTierForLevel } from '../game/config'
-
-/* ==========================================================================
-   The room stage: one low-res canvas, one requestAnimationFrame loop.
-   State is read straight from the store each frame instead of via props, so
-   the 60fps scene never triggers a React render.
-   ========================================================================== */
-
 /** Where particles appear when an fx event does not name a position. */
 const CHEST_X = SCENE.heroX
 const CHEST_Y = SCENE.heroY - 34
@@ -36,14 +29,12 @@ export function RoomCanvas() {
     ctx.imageSmoothingEnabled = false
 
     const particles = new ParticleSystem(SCENE.heroY + 14)
-
-    /* ---- integer upscaling keeps every pixel square ---- */
-    const resize = () => {
+const resize = () => {
       const w = wrap.clientWidth
       const h = wrap.clientHeight
       if (!w || !h) return
       const byWidth = Math.floor(w / SCENE.w)
-      // never smaller than 2x — we crop the ceiling instead of shrinking him
+      // never smaller than 2x - we crop the ceiling instead of shrinking him
       const scale = Math.max(2, Math.min(byWidth, Math.ceil(h / SCENE.h) + 1))
       scaleRef.current = scale
       canvas.style.width = `${SCENE.w * scale}px`
@@ -52,9 +43,7 @@ export function RoomCanvas() {
     resize()
     const ro = new ResizeObserver(resize)
     ro.observe(wrap)
-
-    /* ---- fx bus ---- */
-    let shake = 0
+let shake = 0
     const offFx = onFx((e) => {
       if (e.type === 'burst') {
         particles.spawn(e.kind, e.x ?? CHEST_X, e.y ?? CHEST_Y, e.count ?? 8, e.power ?? 1)
@@ -62,9 +51,7 @@ export function RoomCanvas() {
         shake = Math.max(shake, e.power ?? 1)
       }
     })
-
-    /* ---- loop ---- */
-    let raf = 0
+let raf = 0
     let last = performance.now()
     let ambient = 0
 
@@ -147,9 +134,7 @@ export function RoomCanvas() {
       offFx()
     }
   }, [])
-
-  /* ---- taps ---- */
-  const onPointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
+const onPointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current
     if (!canvas) return
     const rect = canvas.getBoundingClientRect()

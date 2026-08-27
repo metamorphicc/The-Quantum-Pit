@@ -45,18 +45,6 @@ export interface LoadResult {
   awayMs: number
   fresh: boolean
 }
-
-/* ==========================================================================
-   Where the save lives
-
-   localStorage is namespaced by Telegram account id, so a shared device gives
-   each player their own trader. Telegram's CloudStorage holds a copy of the
-   same JSON against the player's account, which is what makes progress follow
-   them to another phone — there is still no server of ours anywhere.
-
-   Nothing here is money. It is a JSON blob with a fake cash figure in it.
-   ========================================================================== */
-
 function localKey(): string {
   const id = tgUserId()
   return `${SAVE_KEY_PREFIX}${id === null ? 'guest' : id}`
@@ -67,7 +55,7 @@ function readKey(key: string): Partial<SaveData> | null {
   try {
     raw = localStorage.getItem(key)
   } catch {
-    return null // private mode / storage disabled — play in-memory
+    return null // private mode / storage disabled - play in-memory
   }
   if (!raw) return null
   return parseSave(raw)
@@ -82,7 +70,7 @@ function parseSave(raw: string): Partial<SaveData> | null {
   }
 }
 
-/** `lastVisit` as it was found on disk — used to decide if the cloud is newer. */
+/** `lastVisit` as it was found on disk - used to decide if the cloud is newer. */
 let localSavedAt = 0
 
 /**
@@ -94,7 +82,7 @@ export function loadSave(now: number): LoadResult {
   const base = freshSave(now)
 
   // The namespaced key wins. Falling back to the old flat key adopts a save
-  // made before per-account namespacing existed — once, and only if this
+  // made before per-account namespacing existed - once, and only if this
   // account has nothing of its own yet.
   const input = readKey(localKey()) ?? readKey(SAVE_KEY_LEGACY)
   if (!input) {
@@ -116,9 +104,9 @@ export function loadSave(now: number): LoadResult {
 /**
  * Merge an unknown-shaped payload onto a fresh save, field by field.
  *
- * This is also the v4 → v5 path. A pre-Quantum-Pit save has `needs`, `coins`,
+ * This is also the v4 -> v5 path. A pre-Quantum-Pit save has `needs`, `coins`,
  * `shards` and `larder`, none of which mean anything now, so they are simply
- * not read — the trader half comes out fresh. What does carry over is the part
+ * not read - the trader half comes out fresh. What does carry over is the part
  * that is still his: the name, the rig he owns, what he is wearing, and how
  * long you have been at this.
  */
@@ -213,7 +201,7 @@ function readTaskBaseline(input: unknown): Partial<Record<TaskMetric, number>> {
  * we keep its baseline and claims; otherwise (rolled, absent, or a pre-v11 save
  * with no tasks at all) we snapshot the migrated counters as the new baseline,
  * so upgrading mid-career doesn't hand out a window's worth of instant clears.
- * Milestones are absolute, so keeping only the claimed ids is enough — a
+ * Milestones are absolute, so keeping only the claimed ids is enough - a
  * veteran can rightly claim the career steps they have already passed.
  */
 function readTasks(
@@ -338,7 +326,7 @@ export function applyDrift(stats: Stats, elapsedMs: number): Stats {
   for (const key of STAT_ORDER) {
     const drifted = clamp(out[key] - STATS[key].driftPerHour * hours)
     // Heat is allowed all the way to nothing. The eroding gauges stop at the
-    // floor, so a returning player always has enough left to act — and never
+    // floor, so a returning player always has enough left to act - and never
     // gets a gauge handed back up if it was already below it.
     out[key] = STATS[key].inverted
       ? drifted
@@ -346,11 +334,6 @@ export function applyDrift(stats: Stats, elapsedMs: number): Stats {
   }
   return out
 }
-
-/* ==========================================================================
-   Writing
-   ========================================================================== */
-
 let saveTimer: number | undefined
 
 /** Debounced write. Call `flushSave` when the app is about to disappear. */
@@ -406,7 +389,7 @@ export function writeSave(data: SaveData, immediateCloud = false): void {
   try {
     localStorage.setItem(localKey(), json)
   } catch {
-    // out of quota or storage blocked — nothing we can do, keep playing
+    // out of quota or storage blocked - nothing we can do, keep playing
   }
 
   queueCloudWrite(json, immediateCloud)
@@ -427,16 +410,6 @@ export function clearSave(): void {
   pendingCloud = null
   void cloudRemove(CLOUD_SAVE_KEY)
 }
-
-/* ==========================================================================
-   Cloud sync
-
-   Writes are debounced far harder than the local ones — this goes over the
-   Telegram bridge, and losing the last few seconds of a session costs nothing
-   we cannot recompute from the clock. Nothing is sent until the initial pull
-   has settled, so a fresh install can never stamp on a good cloud save.
-   ========================================================================== */
-
 const CLOUD_DEBOUNCE = 12_000
 
 let cloudTimer: number | undefined
@@ -471,7 +444,7 @@ function flushCloud(): void {
 
 /**
  * Reads the account-wide copy. Resolves with a save only when it is genuinely
- * newer than what this device had — otherwise null, and the local save stands.
+ * newer than what this device had - otherwise null, and the local save stands.
  * Opening the write gate is the caller's job (`releaseCloudWrites`), so a slow
  * or missing response cannot silently discard the cloud copy.
  */

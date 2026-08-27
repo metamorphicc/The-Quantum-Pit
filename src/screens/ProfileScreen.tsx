@@ -27,12 +27,6 @@ import { formatAway, formatCash, formatSigned } from '../game/util'
 import { cloudAvailable, tgUserId, tgUserName, tgUsername } from '../telegram/telegram'
 import { badgeClaimConfigured } from '../web3/baseAchievements'
 import { shortAddress } from '../web3/baseAccount'
-
-/* ==========================================================================
-   Trading record: who he is, how he is reading it, and the whole book.
-   Also the only place his name can be changed.
-   ========================================================================== */
-
 const SLOTS: EquipSlot[] = ['head', 'cloak', 'blade']
 
 export function ProfileScreen() {

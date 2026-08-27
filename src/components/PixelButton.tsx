@@ -9,12 +9,12 @@ export interface PixelButtonProps {
   label: string
   onClick?: () => void
   icon?: IconName
-  /** small line under the label — cooldown text, stock count, etc. */
+  /** small line under the label - cooldown text, stock count, etc. */
   sublabel?: string
   variant?: ButtonVariant
   size?: ButtonSize
   disabled?: boolean
-  /** stacks icon above label — used for the room action bar */
+  /** stacks icon above label - used for the room action bar */
   stack?: boolean
   full?: boolean
   /** price tag rendered on the right */

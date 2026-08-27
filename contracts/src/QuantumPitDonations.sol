@@ -1,23 +1,5 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
-
-/* ==========================================================================
-   QuantumPitDonations
-
-   A minimal, optional donation receiver for Quantum Pit. Quantum Pit's cosmetic
-   checkout works with a plain treasury address and needs no contract at all —
-   this exists only if you want onchain, indexable donation records (an event
-   per donation, carrying an arbitrary `ref` you can map back to a user).
-
-   Design goals: small, ownable, no upgrade machinery, no external deps.
-     - accepts native ETH via donate() or a bare send (receive());
-     - accepts any ERC-20 via donateERC20() (needs prior approve);
-     - emits an event per donation with an indexed ref;
-     - owner-only withdrawal of ETH and ERC-20.
-
-   NOT for private keys, NOT for game logic. Deploy to Base Sepolia first.
-   ========================================================================== */
-
 interface IERC20 {
     function transfer(address to, uint256 amount) external returns (bool);
     function transferFrom(address from, address to, uint256 amount) external returns (bool);

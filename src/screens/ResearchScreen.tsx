@@ -9,12 +9,6 @@ import { cooldownLeft, deskRead, deskReadGainWithRig, say, setScreen, useSupply 
 import { EDGE_SOFT_CAP, STATS, STAT_ORDER, SUPPLIES } from '../game/config'
 import { useGameState } from '../game/store'
 import { formatSeconds } from '../game/util'
-
-/* ==========================================================================
-   Research — what is actually on the desk, plus one dry line per item.
-   An empty stash is not a dead end: he can always just sit and read.
-   ========================================================================== */
-
 export function ResearchScreen() {
   const s = useGameState()
   const stocked = SUPPLIES.filter((f) => (s.stash[f.id] ?? 0) > 0)
@@ -119,7 +113,7 @@ export function ResearchScreen() {
           </PixelPanel>
         ) : null}
 
-        {/* the free read — slow, small, and always available */}
+        {/* the free read - slow, small, and always available */}
         <PixelPanel variant="stone" title="Just sit and read" titleIcon="swordBlue" pad="md">
           <p className="t-body detail__desc">
             No notes, no signal, no shortcut. An hour with the resolution rules and a pencil.

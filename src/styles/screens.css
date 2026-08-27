@@ -1,9 +1,3 @@
-/* ==========================================================================
-   SCREEN LAYOUTS
-   Mobile-first, 390x844 baseline. Nothing scrolls except .screen__body, and
-   the main room does not scroll at all.
-   ========================================================================== */
-
 .screen__body {
   display: flex;
   flex-direction: column;
@@ -20,11 +14,6 @@
   flex-direction: column;
   gap: 6px;
 }
-
-/* --------------------------------------------------------------------------
-   Item grids
-   -------------------------------------------------------------------------- */
-
 .grid {
   display: grid;
   gap: 6px;
@@ -36,11 +25,6 @@
 .grid--4 {
   grid-template-columns: repeat(4, 1fr);
 }
-
-/* --------------------------------------------------------------------------
-   Detail lists (need deltas, tallies)
-   -------------------------------------------------------------------------- */
-
 .detail__desc {
   padding: 0 0 8px;
   line-height: 1.5;
@@ -111,11 +95,6 @@
   padding: 14px 8px 10px;
   text-align: center;
 }
-
-/* --------------------------------------------------------------------------
-   Tabs
-   -------------------------------------------------------------------------- */
-
 .tabs {
   display: flex;
   gap: 4px;
@@ -165,11 +144,6 @@
   font-size: 8px;
   letter-spacing: 0.04em;
 }
-
-/* ==========================================================================
-   BOOT / TITLE
-   ========================================================================== */
-
 .boot {
   position: relative;
   flex: 1;
@@ -482,11 +456,6 @@
   letter-spacing: 0.12em;
   color: var(--bone-deep);
 }
-
-/* ==========================================================================
-   MAIN ROOM
-   ========================================================================== */
-
 .room {
   background: #070a0f;
 }
@@ -517,9 +486,6 @@
   text-align: right;
   white-space: nowrap;
 }
-
-/* --- the stage: canvas + overlays --- */
-
 .room__stage {
   position: relative;
   flex: 1 1 auto;
@@ -588,9 +554,6 @@
 .room__speech .speech {
   background-color: rgba(8, 12, 18, 0.94);
 }
-
-/* --- HUD --- */
-
 .room__hud {
   flex: 0 0 auto;
   display: flex;
@@ -1030,12 +993,6 @@
   text-shadow: none;
   overflow: visible;
 }
-
-/* --------------------------------------------------------------------------
-   Quest tracker — the always-on desk HUD, pinned to the right of the room.
-   Anchored to .screen.room (not .room__stage, which clips). No safe-area
-   vars: .screen already sits inside .app's safe-area padding.
-   -------------------------------------------------------------------------- */
 .quest-tracker {
   position: absolute;
   top: 48px;
@@ -1118,11 +1075,6 @@
 .quest-track.is-claimable .quest-track__pct {
   color: var(--gold-lit);
 }
-
-/* ==========================================================================
-   WARDROBE
-   ========================================================================== */
-
 .wardrobe__preview {
   position: relative;
   display: flex;
@@ -1157,11 +1109,6 @@
   letter-spacing: 0.1em;
   line-height: 1.4;
 }
-
-/* ==========================================================================
-   SERVICE RECORD (profile)
-   ========================================================================== */
-
 .profile__hero {
   position: relative;
   display: flex;
@@ -1327,11 +1274,6 @@
   flex-direction: column;
   gap: 6px;
 }
-
-/* --------------------------------------------------------------------------
-   Task cards — badgecard's cousin, with a progress bar and reward chips.
-   -------------------------------------------------------------------------- */
-
 .tasks {
   display: flex;
   flex-direction: column;
@@ -1425,11 +1367,6 @@
   padding-left: 5px;
   padding-right: 5px;
 }
-
-/* --------------------------------------------------------------------------
-   Carved text field
-   -------------------------------------------------------------------------- */
-
 .field {
   width: 100%;
   min-height: 42px;
@@ -1474,11 +1411,6 @@
 .linkbtn:active {
   color: var(--gold-lit);
 }
-
-/* ==========================================================================
-   THE BOARD (market scan)
-   ========================================================================== */
-
 .board {
   list-style: none;
   display: flex;
@@ -1571,7 +1503,7 @@
   text-shadow: 1px 1px 0 var(--ink);
 }
 
-/* Deliberately not a chart — one chunky segmented bar, quantised to 5%. */
+/* Deliberately not a chart - one chunky segmented bar, quantised to 5%. */
 .mkt__bar {
   display: block;
   width: 100%;
@@ -1586,11 +1518,6 @@
   background-color: var(--teal-lit);
   background-image: none;
 }
-
-/* ==========================================================================
-   TICKET DESK (place sim bet)
-   ========================================================================== */
-
 .train {
   gap: 8px;
 }
@@ -1616,9 +1543,6 @@
   display: block;
   touch-action: manipulation;
 }
-
-/* ---- yes / no ---- */
-
 .ticket__sides {
   display: flex;
   gap: 5px;
@@ -1678,9 +1602,6 @@
 .sidebtn.is-on .sidebtn__price {
   color: var(--bone);
 }
-
-/* ---- size chips ---- */
-
 .tabs--tight {
   gap: 4px;
   padding: 0 0 8px;
@@ -1701,11 +1622,6 @@
 .ticket__preview li {
   background: rgba(0, 0, 0, 0.34);
 }
-
-/* ==========================================================================
-   SETTINGS
-   ========================================================================== */
-
 .toggles {
   list-style: none;
   display: flex;
@@ -1787,13 +1703,6 @@
     inset 0 2px 0 0 var(--gold-lit),
     inset 0 -2px 0 0 var(--gold-dark);
 }
-
-/* ==========================================================================
-   Short screens: give the stage priority, shrink the chrome. The nav row
-   stays — it is the only guaranteed way to reach the Market, the Regalia,
-   the Record and the Keep.
-   ========================================================================== */
-
 @media (max-height: 700px) {
   .room__stage {
     min-height: 140px;

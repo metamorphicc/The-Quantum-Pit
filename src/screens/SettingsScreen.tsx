@@ -9,12 +9,6 @@ import { GAME_VERSION, WORLD } from '../game/config'
 import { useGameState } from '../game/store'
 import { closeApp, isTelegram, telegramInfo } from '../telegram/telegram'
 import type { IconName } from '../components/PixelIcon'
-
-/* ==========================================================================
-   The back office — settings, the way into the trading record, and the one
-   destructive button.
-   ========================================================================== */
-
 const TOGGLES: { key: 'sound' | 'haptics' | 'reduceMotion'; label: string; icon: IconName; note: string }[] =
   [
     { key: 'sound', label: 'Sound', icon: 'flame', note: 'Short pixel blips. No music.' },
@@ -115,7 +109,7 @@ export function SettingsScreen() {
 
         <p className="t-label t-dim t-center screen__foot">
           {WORLD.title} v{GAME_VERSION}
-          {tg ? ` · Telegram ${tg.platform} ${tg.version}` : ' · browser'}
+          {tg ? ` - Telegram ${tg.platform} ${tg.version}` : ' - browser'}
         </p>
         <p className="t-label t-dim t-center screen__foot">
           {WORLD.disclaimer}

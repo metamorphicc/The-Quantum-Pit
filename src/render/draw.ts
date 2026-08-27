@@ -1,9 +1,3 @@
-/* ==========================================================================
-   Low-level pixel drawing helpers.
-   Everything snaps to integer coordinates so the output stays crisp when the
-   canvas is scaled up with image-rendering: pixelated.
-   ========================================================================== */
-
 export type Ctx = CanvasRenderingContext2D
 
 export function px(ctx: Ctx, x: number, y: number, w: number, h: number, color: string): void {
@@ -41,7 +35,7 @@ export function outline(
   px(ctx, x + w - t, y, t, h, color)
 }
 
-/** Bresenham line with square caps — used for blades and chains. */
+/** Bresenham line with square caps for crisp pixel strokes. */
 export function pxLine(
   ctx: Ctx,
   x0: number,
@@ -79,7 +73,7 @@ export function pxLine(
   }
 }
 
-/** Checkerboard fill — cheap pixel-art shading / soft light falloff. */
+/** Checkerboard fill - cheap pixel-art shading / soft light falloff. */
 export function dither(
   ctx: Ctx,
   x: number,
@@ -106,7 +100,7 @@ export function dither(
 }
 
 /**
- * Concentric dithered rings — a torch/fire light pool without gradients.
+ * Concentric dithered rings for a pixel light pool without gradients.
  */
 export function lightPool(
   ctx: Ctx,
@@ -124,7 +118,7 @@ export function lightPool(
   }
 }
 
-/** Static value noise in [0,1) — same input always gives the same output. */
+/** Static value noise in [0,1) - same input always gives the same output. */
 export function noise2(x: number, y: number): number {
   const n = Math.sin(x * 12.9898 + y * 78.233) * 43758.5453
   return n - Math.floor(n)

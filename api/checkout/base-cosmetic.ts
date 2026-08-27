@@ -1,16 +1,3 @@
-/* ==========================================================================
-   Base cosmetic checkout — build the payment transaction.
-
-   Returns a prepared USDC-on-Base transfer to the treasury. The browser asks
-   the connected Base Account to send it; this function never sees private keys.
-   Prices come from the server catalogue, never the request body.
-
-   The grant does NOT happen here. After the wallet broadcasts the tx, the
-   client calls /api/checkout/base-verify, which confirms it onchain.
-
-   Env: TREASURY_ADDRESS (or legacy BASE_COSMETIC_TREASURY_ADDRESS).
-   ========================================================================== */
-
 import type { Req, Res } from '../_lib/http'
 import { parseBody } from '../_lib/http'
 import { treasuryAddress } from '../_lib/env'

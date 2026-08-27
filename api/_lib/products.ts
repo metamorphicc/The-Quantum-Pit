@@ -1,11 +1,3 @@
-/* ==========================================================================
-   Server-side product catalogue — the single source of truth for prices.
-
-   The client sends a productId only; prices are decided here so a tampered
-   request cannot buy a 500-Star item for 1 Star. Keep these in lockstep with
-   DONATION_COSMETICS in src/game/config.ts.
-   ========================================================================== */
-
 export interface ServerProduct {
   id: string
   name: string
@@ -31,7 +23,7 @@ function make(
   return {
     id,
     name,
-    desc: `${name}. Cosmetic only — no gameplay power.`,
+    desc: `${name}. Cosmetic only - no gameplay power.`,
     priceStars,
     priceUsd,
     usdcUnits: usdc(priceUsd),

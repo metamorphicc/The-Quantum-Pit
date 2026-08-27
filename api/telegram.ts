@@ -1,33 +1,8 @@
-/* ==========================================================================
-   Telegram bot webhook.
-
-   Two jobs:
-     1. Chat handling — somebody types /start and gets the intro + Mini App
-        button instead of silence.
-     2. Payments — this is the trustworthy half of the Telegram Stars rail.
-        Telegram calls this webhook (not the client) for pre_checkout_query and
-        successful_payment, so the grant is decided here from Telegram's own
-        signed update, never from the client saying "I paid".
-
-   Environment variables (Vercel → Project → Settings → Environment Variables):
-
-     TELEGRAM_BOT_TOKEN required. From @BotFather. (Legacy BOT_TOKEN still read.)
-     WEBHOOK_SECRET     optional but recommended. Same value you pass as
-                        `secret_token` when registering the webhook; requests
-                        without it are rejected.
-     APP_URL            optional. Public URL of the Mini App. Falls back to the
-                        deployment's own production URL.
-     START_IMAGE_URL    optional. Absolute URL of the /start picture. Defaults
-                        to `<APP_URL>/start-banner.png`.
-     KV_REST_API_URL / KV_REST_API_TOKEN (or UPSTASH_*) — payment store. Stars
-                        purchases are only granted when this is configured.
-   ========================================================================== */
-
 import { botToken, webhookSecret } from './_lib/env'
 import { getProduct } from './_lib/products'
 import { claimOnce, grantEntitlement, keys, storeConfigured } from './_lib/store'
 
-/** Minimal shape of the Vercel Node request/response — avoids a dependency. */
+/** Minimal shape of the Vercel Node request/response - avoids a dependency. */
 interface Req {
   method?: string
   headers: Record<string, string | string[] | undefined>
@@ -40,31 +15,23 @@ interface Res {
 }
 
 declare const process: { env: Record<string, string | undefined> }
-
-/* --------------------------------------------------------------------------
-   Copy. Dry, like the rest of the game. HTML parse mode.
-   -------------------------------------------------------------------------- */
-
 const CAPTION = [
   '<b>QUANTUM PIT</b>',
   '<i>Polymarket trader simulator</i>',
   '',
-  'Old Halvard held a gate for forty winters. Now he holds positions. Same wooden room, same bad lighting, different kind of door.',
+  'Max is 18, underfunded, and trying to turn research into edge. One desk, one tiny bankroll, too many quotes.',
   '',
   'Six invented questions on a board. Read them, size them, watch the machine decide.',
   '',
   'Your job is smaller than his: keep his Edge sharp, his Focus alive, his Heat down and his Rep alive. Tap him to check the PnL. He will pretend not to need the audience.',
   '',
-  '<i>Paper trading only. No real money, no real orders, no wallet, no chain — the bankroll is a number in a save file.</i>',
+  '<i>Paper trading only. No real money, no real orders, no wallet, no chain - the bankroll is a number in a save file.</i>',
 ].join('\n')
 
 const NUDGE =
-  'The pit is through the button below. He does not read messages — he is busy staring at a quote.'
+  'The desk is through the button below. He does not read messages - he is busy staring at a quote.'
 
-const BUTTON_TEXT = '→  Take the Desk  ←'
-
-/* -------------------------------------------------------------------------- */
-
+const BUTTON_TEXT = '->  Take the Desk  <-'
 function appUrl(): string {
   const explicit = process.env.APP_URL
   if (explicit) return explicit.replace(/\/+$/, '')
@@ -147,11 +114,6 @@ function parseBody(body: unknown): Record<string, any> | null {
   }
   return typeof body === 'object' ? (body as Record<string, any>) : null
 }
-
-/* --------------------------------------------------------------------------
-   Payments
-   -------------------------------------------------------------------------- */
-
 /** Pulls the productId out of the invoice payload we set when creating it. */
 function payloadProductId(raw: unknown): string {
   if (typeof raw !== 'string') return ''
@@ -175,7 +137,7 @@ function validatePreCheckout(pcq: Record<string, any>): boolean {
  * Records a completed Stars payment and grants the cosmetic to the payer.
  * Idempotent: the charge id is claimed once, so a replayed update is a no-op.
  * Throws only on store/network failure, so the handler can return non-200 and
- * let Telegram retry — a validation miss returns quietly instead.
+ * let Telegram retry - a validation miss returns quietly instead.
  */
 async function grantFromPayment(message: Record<string, any>): Promise<void> {
   const sp = message?.successful_payment
@@ -209,9 +171,6 @@ async function grantFromPayment(message: Record<string, any>): Promise<void> {
     }
   }
 }
-
-/* -------------------------------------------------------------------------- */
-
 export default async function handler(req: Req, res: Res): Promise<void> {
   // A GET is handy for eyeballing that the function deployed at all.
   if (req.method !== 'POST') {
@@ -233,7 +192,7 @@ export default async function handler(req: Req, res: Res): Promise<void> {
 
   const update = parseBody(req.body)
 
-  // 1. Pre-checkout — must be answered within seconds, and only for a real
+  // 1. Pre-checkout - must be answered within seconds, and only for a real
   //    item at the price we set.
   const pcq = update?.pre_checkout_query
   if (pcq && typeof pcq.id === 'string') {
@@ -254,7 +213,7 @@ export default async function handler(req: Req, res: Res): Promise<void> {
 
   const message = update?.message ?? update?.edited_message
 
-  // 2. Successful payment — grant the item. Return 500 on a store failure so
+  // 2. Successful payment - grant the item. Return 500 on a store failure so
   //    Telegram retries; the grant is idempotent, so retries are safe.
   if (message?.successful_payment) {
     try {

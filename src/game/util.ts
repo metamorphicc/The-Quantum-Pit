@@ -24,7 +24,7 @@ export function hash2(x: number, y: number): number {
   return n - Math.floor(n)
 }
 
-/** "3h 12m" / "12m" / "40s" — used for the welcome-back line and cooldowns. */
+/** "3h 12m" / "12m" / "40s" - used for the welcome-back line and cooldowns. */
 export function formatAway(ms: number): string {
   const s = Math.floor(ms / 1000)
   if (s < 60) return `${s}s`
@@ -41,20 +41,13 @@ export function formatAway(ms: number): string {
 export function formatSeconds(ms: number): string {
   return `${Math.max(0, Math.ceil(ms / 1000))}s`
 }
-
-/* --------------------------------------------------------------------------
-   Money and prices
-
-   All of it simulated. The dollar sign is a costume.
-   -------------------------------------------------------------------------- */
-
 export function formatCash(v: number): string {
   const n = Math.round(v)
   const sign = n < 0 ? '-' : ''
   return `${sign}$${Math.abs(n).toLocaleString('en-US')}`
 }
 
-/** Always carries its sign — for PnL lines, where the sign is the whole story. */
+/** Always carries its sign - for PnL lines, where the sign is the whole story. */
 export function formatSigned(v: number): string {
   const n = Math.round(v)
   return `${n >= 0 ? '+' : '-'}$${Math.abs(n).toLocaleString('en-US')}`

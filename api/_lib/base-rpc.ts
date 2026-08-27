@@ -1,15 +1,3 @@
-/* ==========================================================================
-   Base onchain verification.
-
-   Confirms a payment actually happened on Base by reading the transaction
-   receipt over JSON-RPC and inspecting the ERC-20 Transfer log — the client
-   is never trusted to say "I paid".
-
-   No keccak needed: the Transfer topic and USDC address are fixed constants,
-   and the ERC-20 amount lives (non-indexed) in the log `data`, so it is read
-   by slicing hex. WebCrypto/fetch only — no Node type packages.
-   ========================================================================== */
-
 /** USDC on Base mainnet (6 decimals). */
 export const BASE_USDC = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
 
@@ -68,9 +56,9 @@ export interface Erc20TransferQuery {
 /**
  * Verifies that `txHash` contains an ERC-20 Transfer of at least `minUnits`
  * of `token` to `recipient`.
- *   - 'pending' — no receipt yet (still mining); caller should retry.
- *   - 'failed'  — receipt exists but reverted, or no matching transfer.
- *   - 'confirmed' — a matching transfer was found.
+ *   - 'pending' - no receipt yet (still mining); caller should retry.
+ *   - 'failed'  - receipt exists but reverted, or no matching transfer.
+ *   - 'confirmed' - a matching transfer was found.
  */
 export async function verifyErc20Transfer(q: Erc20TransferQuery): Promise<VerifyResult> {
   const receipt = (await rpc(q.rpcUrl, 'eth_getTransactionReceipt', [q.txHash])) as

@@ -5,10 +5,7 @@ export interface SpeechBoxProps {
   className?: string
 }
 
-/**
- * The warden's line. A carved plaque under the room, not a rounded chat
- * bubble — the tone is a dungeon sign, not a messaging app.
- */
+/** Status line under the room, styled as a chunky pixel plaque. */
 export function SpeechBox({ text, animKey = 0, className }: SpeechBoxProps) {
   return (
     <div className={`speech ${className ?? ''}`}>

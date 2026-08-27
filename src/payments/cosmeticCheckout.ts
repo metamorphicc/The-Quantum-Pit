@@ -6,19 +6,6 @@ import type {
 } from '../game/types'
 import { openTelegramInvoice, tgInitData } from '../telegram/telegram'
 import { baseProvider, ensureBaseChain } from '../web3/baseAccount'
-
-/* ==========================================================================
-   Cosmetic checkout — client half.
-
-   The client never decides ownership. It kicks off a payment on the rail that
-   matches how the player logged in (Telegram → Stars, Base → USDC) and then
-   waits for the SERVER to confirm it:
-     - Base:  poll /api/checkout/base-verify until the tx is confirmed onchain.
-     - Stars: poll /api/entitlements until Telegram's webhook has granted it.
-   payForCosmetic only resolves once the server says the item is owned, so a
-   forged "paid" status can never unlock anything.
-   ========================================================================== */
-
 type Env = Record<string, string | undefined>
 
 interface TxPayload {
@@ -107,11 +94,6 @@ async function postJson<T>(url: string, body: string): Promise<T> {
   }
   return (await response.json()) as T
 }
-
-/* --------------------------------------------------------------------------
-   Entitlements — the server's owned list for the current identity.
-   -------------------------------------------------------------------------- */
-
 export async function fetchEntitlements(state: GameState): Promise<string[]> {
   if (state.loginMethod !== 'telegram' && state.loginMethod !== 'base') return []
   const endpoint = env().VITE_QP_ENTITLEMENTS_URL ?? '/api/entitlements'
@@ -142,11 +124,6 @@ async function waitForEntitlement(
   }
   return false
 }
-
-/* --------------------------------------------------------------------------
-   Base — pay in USDC, then confirm the transaction onchain server-side.
-   -------------------------------------------------------------------------- */
-
 async function payWithBase(cosmetic: CosmeticDef, state: GameState): Promise<CosmeticReceipt> {
   if (!state.walletAddress) throw new Error('Connect Base Account before buying cosmetics.')
   const endpoint = env().VITE_QP_BASE_COSMETIC_CHECKOUT_URL ?? '/api/checkout/base-cosmetic'
@@ -186,13 +163,8 @@ async function payWithBase(cosmetic: CosmeticDef, state: GameState): Promise<Cos
     if (!data.pending) throw new Error(data.error ?? 'Payment could not be verified on Base.')
     await delay(2500)
   }
-  throw new Error('Payment sent. It will unlock once the Base transaction confirms — check back shortly.')
+  throw new Error('Payment sent. It will unlock once the Base transaction confirms - check back shortly.')
 }
-
-/* --------------------------------------------------------------------------
-   Telegram Stars — open the invoice, then wait for the webhook's grant.
-   -------------------------------------------------------------------------- */
-
 async function payWithStars(cosmetic: CosmeticDef, state: GameState): Promise<CosmeticReceipt> {
   const endpoint = env().VITE_QP_TELEGRAM_STARS_CHECKOUT_URL ?? '/api/checkout/telegram-stars'
 

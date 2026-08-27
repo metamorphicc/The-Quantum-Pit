@@ -13,12 +13,6 @@ import { baseAccountAvailable, connectBaseAccount, shortAddress } from '../web3/
 import { P } from '../styles/palette'
 import { dither, px, pxa, pxLine, type Ctx } from '../render/draw'
 import { drawWardenPortrait } from '../render/warden'
-
-/* ==========================================================================
-   Boot / title screen. Also the audio unlock gesture: the browser will not let
-   us make a sound until the player touches something.
-   ========================================================================== */
-
 const TITLE_W = 132
 const TITLE_H = 116
 

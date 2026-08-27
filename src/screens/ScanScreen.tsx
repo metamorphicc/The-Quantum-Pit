@@ -7,15 +7,6 @@ import { boardQuotes, cooldownLeft, doScan, isStale, marketCostWithRig, openBet,
 import { MARKET, MARKET_BY_ID, WORLD, traderClassById } from '../game/config'
 import { useGameState } from '../game/store'
 import { formatPrice, formatProb, formatSeconds } from '../game/util'
-
-/* ==========================================================================
-   The board — six invented questions with locally generated quotes.
-
-   Nothing here is fetched. There is no feed, no API key and no network call in
-   the whole screen; a scan just re-rolls the numbers and charges him for the
-   time it took to read them.
-   ========================================================================== */
-
 export function ScanScreen() {
   const s = useGameState()
   const now = Date.now()
@@ -54,11 +45,11 @@ export function ScanScreen() {
                       <span className="mkt__tag t-label t-dim">
                         {def.tag} / {def.category}
                         {favored ? ' / favored' : ''}
-                        {stale ? ' · stale' : ''}
+                        {stale ? ' - stale' : ''}
                       </span>
                       <span className="mkt__q t-body">{def.question}</span>
                       <span className="mkt__cost t-label t-dim">
-                        {cost.focus} focus · {cost.heat} heat
+                        {cost.focus} focus - {cost.heat} heat
                       </span>
                     </span>
 
@@ -89,7 +80,7 @@ export function ScanScreen() {
           sublabel={
             left > 0
               ? formatSeconds(left)
-              : `Costs ${scanCost.focus} focus · +${scanCost.heat} heat`
+              : `Costs ${scanCost.focus} focus - +${scanCost.heat} heat`
           }
           onClick={() => doScan()}
         />

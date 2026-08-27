@@ -11,7 +11,7 @@ export interface PixelBarProps {
   low?: boolean
   /** show the numeric value on the right */
   showValue?: boolean
-  /** replaces the numeric value with arbitrary text (money, "12/20", …) */
+  /** replaces the numeric value with arbitrary text (money, "12/20", ...) */
   valueText?: string
   size?: 'sm' | 'md'
   className?: string
@@ -19,7 +19,7 @@ export interface PixelBarProps {
 
 /**
  * RPG stat bar. The fill is quantised to 5% steps so it moves in visible
- * chunks instead of sliding smoothly — reads as pixel segments, not a
+ * chunks instead of sliding smoothly - reads as pixel segments, not a
  * progress bar.
  */
 export function PixelBar({

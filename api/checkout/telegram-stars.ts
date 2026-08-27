@@ -1,17 +1,3 @@
-/* ==========================================================================
-   Telegram Stars cosmetic checkout — create an invoice link.
-
-   Hardening over the original:
-     - validates the caller's Telegram initData (HMAC) and binds the buyer's
-       user id into the invoice payload, so the webhook can only entitle the
-       identity that actually opened checkout;
-     - prices come from the server catalogue, never the request body;
-     - refuses when the payment store is not configured, because a Stars charge
-       we cannot record or grant server-side must not be taken.
-
-   Env: TELEGRAM_BOT_TOKEN (or legacy BOT_TOKEN), plus a configured KV store.
-   ========================================================================== */
-
 import type { Req, Res } from '../_lib/http'
 import { parseBody } from '../_lib/http'
 import { botToken } from '../_lib/env'

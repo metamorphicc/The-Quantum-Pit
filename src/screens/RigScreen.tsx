@@ -9,13 +9,6 @@ import { equipRig, say, setScreen } from '../game/actions'
 import { RIGS, SLOT_LABEL } from '../game/config'
 import { useGameState } from '../game/store'
 import type { EquipSlot } from '../game/types'
-
-/* ==========================================================================
-   The rig — pick a look. Locked pieces stay visible, chained shut, so the
-   player can see what the supply shelf is for. Equipped kit now carries small
-   passive bonuses, but none of it makes him a trader without clean decisions.
-   ========================================================================== */
-
 const SLOTS: EquipSlot[] = ['head', 'cloak', 'blade']
 
 export function RigScreen() {
@@ -41,7 +34,7 @@ export function RigScreen() {
                   return id ? RIGS.find((r) => r.id === id)?.name : null
                 })
                   .filter(Boolean)
-                  .join(' · ')}
+                  .join(' - ')}
               </span>
             </div>
           </div>

@@ -1,9 +1,3 @@
-/* ==========================================================================
-   Design tokens — mirrors src/styles/palette.ts
-   Chunky 16-bit trader-room UI. Hard edges only: no border-radius anywhere,
-   no soft shadows, no SaaS gradients.
-   ========================================================================== */
-
 :root {
   /* darks */
   --ink: #070a0f;
@@ -60,7 +54,7 @@
   --font-title: 'Press Start 2P', 'Silkscreen', ui-monospace, monospace;
   --font-ui: 'Silkscreen', 'Press Start 2P', ui-monospace, 'Courier New', monospace;
 
-  /* geometry — everything is a multiple of 2px so it stays on the pixel grid */
+  /* geometry - everything is a multiple of 2px so it stays on the pixel grid */
   --bd: 3px; /* standard frame border */
   --px: 2px;
 

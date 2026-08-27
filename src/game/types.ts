@@ -1,14 +1,4 @@
 import type { IconName } from '../components/PixelIcon'
-
-/* ==========================================================================
-   Trader stats
-
-   Four 0..100 gauges. Bankroll is deliberately NOT one of them — it is real
-   (simulated) money, unbounded, and it only moves on fills, fees and events.
-   The HUD still shows five bars: the fifth is bankroll health, derived from
-   the drawdown off the peak.
-   ========================================================================== */
-
 export type StatKey = 'edge' | 'focus' | 'heat' | 'rep'
 
 export type Stats = Record<StatKey, number>
@@ -23,7 +13,7 @@ export interface StatMeta {
   colorDark: string
   /**
    * Points lost per real hour. Negative means the gauge drifts *up* while the
-   * app is closed — nothing does that yet, but Heat is the obvious candidate
+   * app is closed - nothing does that yet, but Heat is the obvious candidate
    * if the tuning ever wants a slow burn instead of a slow cool.
    */
   driftPerHour: number
@@ -32,14 +22,9 @@ export interface StatMeta {
   /** line shown when this stat goes critical */
   warn: string
 }
-
-/* ==========================================================================
-   Screens / navigation
-   ========================================================================== */
-
 export type ScreenId =
   | 'boot'
-  /** the trading hall — the one main screen */
+  /** the trading hall - the one main screen */
   | 'room'
   | 'research'
   | 'scan'
@@ -48,11 +33,6 @@ export type ScreenId =
   | 'shop'
   | 'profile'
   | 'settings'
-
-/* ==========================================================================
-   Character activity (drives the sprite animation)
-   ========================================================================== */
-
 export type ActivityKind =
   | 'idle'
   /** tapped: he shows you the book */
@@ -70,26 +50,8 @@ export interface Activity {
   startedAt: number
   duration: number
 }
-
-/* ==========================================================================
-   Money
-
-   `bankroll` is the simulated cash line. `credits` are the slower currency —
-   earned from good books, spent on the things bankroll should not buy.
-   ========================================================================== */
-
 export type Currency = 'bankroll' | 'credits'
-
-/* ==========================================================================
-   Login / identity
-   ========================================================================== */
-
 export type LoginMethod = 'base' | 'telegram' | 'guest'
-
-/* ==========================================================================
-   Trader class
-   ========================================================================== */
-
 export type MarketCategory = 'crypto' | 'sports' | 'perps' | 'politics' | 'culture'
 
 export type TraderClassId = 'crypto' | 'sports' | 'perps' | 'politics' | 'general'
@@ -104,11 +66,6 @@ export interface TraderClassDef {
   winBonus: number
   desc: string
 }
-
-/* ==========================================================================
-   Achievements / onchain badge prep
-   ========================================================================== */
-
 export type AchievementId =
   | 'first-desk'
   | 'base-linked'
@@ -142,11 +99,6 @@ export interface AchievementRecord {
   claimedAt: number
   txHash: string | null
 }
-
-/* ==========================================================================
-   Cosmetic ownership / donations
-   ========================================================================== */
-
 export type CosmeticCategory = 'outfit' | 'desk' | 'monitor' | 'room' | 'tool'
 
 export type DonationPaymentProvider = 'base' | 'telegram-stars'
@@ -163,11 +115,6 @@ export interface CosmeticDef {
 }
 
 export type ActiveCosmetics = Partial<Record<CosmeticCategory, string | null>>
-
-/* ==========================================================================
-   Items
-   ========================================================================== */
-
 /** One-shot desk supplies: coffee, notes, a cooldown draught. */
 export interface SupplyDef {
   id: string
@@ -230,11 +177,6 @@ export interface RigDef {
 }
 
 export type EquippedLook = Record<EquipSlot, string | null>
-
-/* ==========================================================================
-   Markets — mock only. No feed, no API, no real book.
-   ========================================================================== */
-
 export type Side = 'yes' | 'no'
 
 /** The static question. Quotes are generated, never fetched. */
@@ -281,20 +223,11 @@ export interface TradeResult {
   hedged: boolean
   xpGained: number
 }
-
-/* ==========================================================================
-   Tasks
-
-   Four buckets. Daily/weekly/monthly reset on rolling windows; milestones are
-   permanent career steps. A task's progress is derived — never instrumented —
-   from the cumulative counters below plus XP/level. See game/tasks.ts.
-   ========================================================================== */
-
 export type TaskPeriod = 'daily' | 'weekly' | 'monthly'
 
 export type TaskCategory = TaskPeriod | 'milestone'
 
-/** All monotonic — that is what lets a periodic task read as current-baseline. */
+/** All monotonic - that is what lets a periodic task read as current-baseline. */
 export type TaskMetric =
   | 'bets'
   | 'wins'
@@ -341,7 +274,7 @@ export interface TasksState {
   daily: TaskBucketState
   weekly: TaskBucketState
   monthly: TaskBucketState
-  /** milestone ids claimed — permanent, never reset */
+  /** milestone ids claimed - permanent, never reset */
   milestones: string[]
 }
 
@@ -355,14 +288,9 @@ export interface TaskView {
   /** 0..100 for the progress bar */
   pct: number
 }
-
-/* ==========================================================================
-   Persisted save
-   ========================================================================== */
-
 export interface SaveData {
   version: number
-  /** what the player calls him — renameable, defaults to WORLD.hero */
+  /** what the player calls him - renameable, defaults to WORLD.hero */
   name: string
   /** how the player chose to enter this local book */
   loginMethod: LoginMethod | null
@@ -427,14 +355,9 @@ export interface SaveData {
     reduceMotion: boolean
   }
 }
-
-/* ==========================================================================
-   Runtime state = save + ephemeral UI state
-   ========================================================================== */
-
 export interface GameState extends SaveData {
   screen: ScreenId
-  /** whether the quest window overlay is open — transient UI, not persisted */
+  /** whether the quest window overlay is open - transient UI, not persisted */
   questOpen: boolean
   activity: Activity
   /** actionId -> epoch ms when it becomes usable again */

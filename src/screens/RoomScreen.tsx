@@ -27,13 +27,6 @@ import { bankrollHealth, useGameState } from '../game/store'
 import { claimableCount } from '../game/tasks'
 import { formatCash, formatSeconds } from '../game/util'
 import type { TraderClassId } from '../game/types'
-
-/* ==========================================================================
-   The pit — the whole game in one screen.
-   Room canvas on top, gauges and actions below, everything reachable with a
-   thumb.
-   ========================================================================== */
-
 type TutorialTarget = 'status' | 'stats' | 'ticket' | 'tools' | 'utilities' | 'class'
 
 const TUTORIAL_STEPS: {
@@ -185,7 +178,7 @@ export function RoomScreen() {
         >
           <span className="t-label t-gold">{s.name}</span>
           <span className="t-label t-dim">
-            Lv. {level} · {career}
+            Lv. {level} - {career}
           </span>
         </button>
 
@@ -231,7 +224,7 @@ export function RoomScreen() {
               )
             })}
             {/* the money line: a gauge against its own high-water mark, but it
-                prints the actual number — a percentage of a peak is not a P&L */}
+                prints the actual number - a percentage of a peak is not a P&L */}
             <PixelBar
               label={BANKROLL_BAR.label}
               value={bankrollHealth(s.bankroll, s.peakBankroll)}

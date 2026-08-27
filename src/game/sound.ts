@@ -60,7 +60,7 @@ function tone({ freq, dur, type = 'square', gain = 0.06, to, delay = 0 }: ToneOp
   osc.stop(t0 + dur + 0.02)
 }
 
-/** Short filtered noise burst — used for scrubbing, straw hits, splashes. */
+/** Short filtered noise burst for scrubs, desk hits and static. */
 function noise(dur: number, gain = 0.05, bandHz = 1200, delay = 0): void {
   const a = audio()
   if (!a) return

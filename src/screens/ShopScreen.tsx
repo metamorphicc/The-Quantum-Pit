@@ -26,11 +26,6 @@ import type {
   SupplyDef,
 } from '../game/types'
 import { providerLabel, providersForLogin } from '../payments/cosmeticCheckout'
-
-/* ==========================================================================
-   Supply — two shelves: what he reads, and what he wears while reading it.
-   ========================================================================== */
-
 type Tab = 'stash' | 'rig' | 'cosmetics'
 
 const RIG_BONUS_TEXT: Record<keyof RigBonus, { label: string; icon: IconName; value: (v: number) => string }> = {

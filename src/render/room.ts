@@ -1,16 +1,6 @@
 import { P } from '../styles/palette'
 import { dither, lightPool, noise2, outline, px, pxa, pxLine, type Ctx } from './draw'
 import type { ActiveCosmetics } from '../game/types'
-
-/* ==========================================================================
-   The Desk - a single low-resolution trader apartment, drawn procedurally.
-   Static geometry is rendered once into an offscreen canvas and blitted every
-   frame; only monitor glow, city lights, coffee steam and status LEDs animate.
-
-   Internal hotspot names are intentionally preserved so tap behavior and the
-   rest of the game do not move while the visual scene changes.
-   ========================================================================== */
-
 const R = { w: 192, h: 208, floorY: 152 } as const
 const VOID_H = 56
 const FORE_H = 24
@@ -55,11 +45,6 @@ const LEDS = [
   { x: 22, y: 82 },
   { x: 170, y: 82 },
 ] as const
-
-/* --------------------------------------------------------------------------
-   Static apartment shell
-   -------------------------------------------------------------------------- */
-
 function drawCeilingVoid(ctx: Ctx): void {
   px(ctx, 0, 0, R.w, VOID_H, '#05080d')
 
@@ -550,11 +535,6 @@ function drawForeground(ctx: Ctx): void {
     dither(ctx, 0, SCENE.h - (2 + i * 3), R.w, 2 + i * 3, '#000000', 1, 0.16)
   }
 }
-
-/* --------------------------------------------------------------------------
-   Static layer cache
-   -------------------------------------------------------------------------- */
-
 const staticCache = new Map<string, HTMLCanvasElement>()
 
 function cosmeticKey(cosmetics: ActiveCosmetics = {}): string {
@@ -601,11 +581,6 @@ function getStatic(grime: number, tier: number, cosmetics: ActiveCosmetics = {})
   }
   return cv
 }
-
-/* --------------------------------------------------------------------------
-   Public draw
-   -------------------------------------------------------------------------- */
-
 export interface RoomOpts {
   t: number
   grime: number

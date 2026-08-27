@@ -1,13 +1,6 @@
 import { P } from '../styles/palette'
 import { px, pxa, type Ctx } from './draw'
 import type { ParticleKind } from '../game/fx'
-
-/* ==========================================================================
-   Particle system — one flat array, no allocation per frame after warm-up.
-   Coordinates are whatever space the caller draws in; `floorY` says where
-   heavy particles come to rest.
-   ========================================================================== */
-
 interface Particle {
   alive: boolean
   kind: ParticleKind

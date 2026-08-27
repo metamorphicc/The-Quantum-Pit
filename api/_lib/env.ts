@@ -1,10 +1,3 @@
-/* ==========================================================================
-   Environment access for the payment endpoints.
-
-   Every getter accepts more than one name so the same deployment works whether
-   the secrets were added by hand or injected by a Vercel integration.
-   ========================================================================== */
-
 declare const process: { env: Record<string, string | undefined> }
 
 const ADDRESS_RE = /^0x[a-fA-F0-9]{40}$/
