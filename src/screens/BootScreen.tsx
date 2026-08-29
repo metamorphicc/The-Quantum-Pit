@@ -164,7 +164,7 @@ export function BootScreen() {
         ) : (
           <>
             <div className="boot__intro boot__intro--welcome">
-              <p>Max is 18. He has a tiny simulated bankroll and one desk in a rented room.</p>
+              <p>Max is 18. He has a tiny simulated bankroll and a street-corner laptop.</p>
               <ul>
                 <li>You are trading paper prediction markets.</li>
                 <li>The goal is to survive, level up, and grow the room around him.</li>

@@ -107,7 +107,7 @@ let raf = 0
       }
 
       drawRoom(ctx, opts)
-      drawWarden(ctx, SCENE.heroX, SCENE.heroY, pose, s.look, reduce ? 1200 : now)
+      drawWarden(ctx, SCENE.heroX, SCENE.heroY, pose, s.look, reduce ? 1200 : now, tier)
 
       // ambient motes and tiny monitor static in the late-session air
       ambient += dt

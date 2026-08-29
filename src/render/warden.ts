@@ -123,7 +123,80 @@ interface Kit {
   head: 'hair' | 'visor' | 'antenna' | 'cap'
 }
 
-function kitFor(look: EquippedLook): Kit {
+function progressionOutfit(tier: number): OutfitLayer {
+  if (tier >= 6) {
+    return {
+      body: '#101820',
+      shade: '#070a0f',
+      light: '#2f8b91',
+      tee: '#f4ead6',
+      accent: P.goldLit,
+      pants: '#0d1420',
+      pantsShade: '#05080d',
+      shoes: P.plateLit,
+    }
+  }
+  if (tier >= 5) {
+    return {
+      body: '#1d2935',
+      shade: '#101820',
+      light: '#40536a',
+      tee: '#e8dfc8',
+      accent: P.tealLit,
+      pants: '#17263a',
+      pantsShade: '#0c1625',
+      shoes: P.bone,
+    }
+  }
+  if (tier >= 4) {
+    return {
+      body: '#203746',
+      shade: '#10222d',
+      light: '#4d6072',
+      tee: '#dce9e7',
+      accent: P.spiritLit,
+      pants: '#17263a',
+      pantsShade: '#0c1625',
+      shoes: P.boneDim,
+    }
+  }
+  if (tier >= 3) {
+    return {
+      body: '#273746',
+      shade: '#152231',
+      light: '#4d6072',
+      tee: '#e8dfc8',
+      accent: P.spiritLit,
+      pants: '#17263a',
+      pantsShade: '#0c1625',
+      shoes: P.boneDim,
+    }
+  }
+  if (tier >= 2) {
+    return {
+      body: '#26313b',
+      shade: '#151d26',
+      light: '#3d4b59',
+      tee: '#cfc7ad',
+      accent: P.tealLit,
+      pants: '#182438',
+      pantsShade: '#0b1320',
+      shoes: '#8c846f',
+    }
+  }
+  return {
+    body: '#3b342b',
+    shade: '#211b17',
+    light: '#66523b',
+    tee: '#b9ae94',
+    accent: P.goldDark,
+    pants: '#26313b',
+    pantsShade: '#111820',
+    shoes: '#6f6758',
+  }
+}
+
+function kitFor(look: EquippedLook, tier: number): Kit {
   const outfit =
     look.cloak === 'cloak_watch'
       ? {
@@ -158,16 +231,7 @@ function kitFor(look: EquippedLook): Kit {
               pantsShade: '#0d1420',
               shoes: P.emberDeep,
             }
-          : {
-              body: '#273746',
-              shade: '#152231',
-              light: '#4d6072',
-              tee: '#e8dfc8',
-              accent: P.spiritLit,
-              pants: '#17263a',
-              pantsShade: '#0c1625',
-              shoes: P.boneDim,
-            }
+          : progressionOutfit(tier)
 
   const tool =
     look.blade === 'blade_calc'
@@ -357,9 +421,6 @@ function drawFace(ctx: Ctx, hx: number, top: number, pose: Pose): void {
   eye(3)
 
   px(ctx, hx - 1, eyeY + 2, 2, 3, P.skinShade)
-  if (pose.mouth === 'open') px(ctx, hx - 2, top + 16, 4, 2, '#3a1f16')
-  else if (pose.mouth === 'grin') px(ctx, hx - 3, top + 16, 6, 1, '#3a1f16')
-  else px(ctx, hx - 3, top + 16, 6, 1, P.skinShade)
 }
 
 function drawToolBadge(ctx: Ctx, x: number, y: number, kit: Kit): void {
@@ -413,8 +474,9 @@ export function drawWarden(
   pose: Pose,
   look: EquippedLook,
   t: number,
+  tier = 1,
 ): void {
-  const kit = kitFor(look)
+  const kit = kitFor(look, tier)
   const cx = Math.round(originX + pose.shift)
   const gy = Math.round(groundY + (pose.sit > 0.5 ? 2 : 0))
   const shoulderY = bodyTop(gy, pose) + 4
@@ -451,8 +513,9 @@ export function drawWardenPortrait(
   look: EquippedLook,
   t: number,
   stats: Stats,
+  tier = 1,
 ): void {
   const pose = poseFor({ activity: 'idle', phase: 0, t, stats })
   pose.swordLen = 0
-  drawWarden(ctx, cx, groundY, pose, look, t)
+  drawWarden(ctx, cx, groundY, pose, look, t, tier)
 }

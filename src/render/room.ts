@@ -45,6 +45,129 @@ const LEDS = [
   { x: 22, y: 82 },
   { x: 170, y: 82 },
 ] as const
+
+const STREET_PEOPLE = [
+  { seed: 0, y: VOID_H + 124, speed: 0.025, c: '#1b2530', lit: '#43515f' },
+  { seed: 72, y: VOID_H + 130, speed: -0.018, c: '#2c2119', lit: '#72523a' },
+  { seed: 141, y: VOID_H + 119, speed: 0.014, c: '#151d26', lit: '#2f8b91' },
+] as const
+
+function drawStreetStatic(ctx: Ctx, grime: number, cosmetics: ActiveCosmetics): void {
+  px(ctx, 0, 0, SCENE.w, SCENE.h, '#05080d')
+
+  for (let y = 0; y < VOID_H + 96; y += 8) {
+    px(ctx, 0, y, R.w, 7, y < 48 ? '#07101b' : '#0a1119')
+    px(ctx, 0, y + 7, R.w, 1, '#030509')
+  }
+
+  for (let i = 0; i < 12; i++) {
+    const bw = 10 + Math.floor(noise2(i, 11) * 13)
+    const bh = 38 + Math.floor(noise2(i, 18) * 54)
+    const bx = -6 + i * 17
+    const by = VOID_H + 118 - bh
+    px(ctx, bx, by, bw, bh, noise2(i, 24) > 0.5 ? '#0d1722' : '#0a141e')
+    px(ctx, bx, by, bw, 1, '#172431')
+    for (let wy = by + 6; wy < VOID_H + 112; wy += 9) {
+      if (noise2(i * 9, wy) > 0.55) px(ctx, bx + 3, wy, Math.max(2, bw - 6), 1, P.goldDark)
+    }
+  }
+
+  px(ctx, 0, VOID_H + 118, R.w, 34, '#101820')
+  px(ctx, 0, VOID_H + 118, R.w, 2, '#263747')
+  px(ctx, 0, VOID_H + 148, R.w, 4, '#070a0f')
+
+  for (let x = -16; x < R.w; x += 32) {
+    px(ctx, x, VOID_H + 154, 30, 18, '#18212a')
+    px(ctx, x, VOID_H + 154, 30, 1, '#2a3744')
+    px(ctx, x + 29, VOID_H + 154, 1, 18, '#0b1016')
+  }
+
+  outline(ctx, 51, VOID_H + 77, 91, 84, P.ink, 2)
+  px(ctx, 53, VOID_H + 79, 87, 80, '#111820')
+  px(ctx, 53, VOID_H + 79, 87, 5, '#2b3743')
+  px(ctx, 60, VOID_H + 84, 74, 1, '#43515f')
+  for (let x = 57; x < 138; x += 17) {
+    px(ctx, x, VOID_H + 84, 2, 72, '#070a0f')
+  }
+
+  px(ctx, 42, VOID_H + 130, 32, 19, '#5d432b')
+  px(ctx, 121, VOID_H + 129, 28, 22, '#4a3520')
+  outline(ctx, 42, VOID_H + 130, 32, 19, P.ink, 1)
+  outline(ctx, 121, VOID_H + 129, 28, 22, P.ink, 1)
+  px(ctx, 48, VOID_H + 137, 18, 1, P.goldDark)
+  px(ctx, 127, VOID_H + 138, 14, 1, P.goldDark)
+
+  px(ctx, 26, VOID_H + 133, 140, 10, '#6a492c')
+  px(ctx, 26, VOID_H + 133, 140, 2, '#9a704a')
+  px(ctx, 26, VOID_H + 141, 140, 2, '#2c2119')
+  outline(ctx, 26, VOID_H + 133, 140, 10, P.ink, 1)
+  px(ctx, 72, VOID_H + 122, 47, 18, P.plateDark)
+  px(ctx, 74, VOID_H + 124, 43, 11, '#061018')
+  px(ctx, 70, VOID_H + 140, 51, 4, P.plate)
+  px(ctx, 82, VOID_H + 128, 17, 1, P.tealLit)
+  px(ctx, 100, VOID_H + 132, 11, 1, P.spiritLit)
+
+  px(ctx, 34, VOID_H + 144, 29, 33, '#4a3520')
+  px(ctx, 129, VOID_H + 145, 26, 32, '#5d432b')
+  outline(ctx, 34, VOID_H + 144, 29, 33, P.ink, 1)
+  outline(ctx, 129, VOID_H + 145, 26, 32, P.ink, 1)
+  px(ctx, 40, VOID_H + 158, 16, 1, P.goldDark)
+  px(ctx, 135, VOID_H + 159, 13, 1, P.goldDark)
+
+  px(ctx, 151, VOID_H + 128, 8, 11, cosmetics.tool === 'cos_tool_founder_mug' ? P.tealDeep : '#71512a')
+  px(ctx, 151, VOID_H + 128, 8, 2, cosmetics.tool === 'cos_tool_founder_mug' ? P.spiritLit : P.goldLit)
+  outline(ctx, 151, VOID_H + 128, 8, 11, P.ink, 1)
+
+  pxLine(ctx, 63, VOID_H + 143, 77, VOID_H + 178, '#070a0f', 2)
+  pxLine(ctx, 111, VOID_H + 143, 142, VOID_H + 178, '#070a0f', 2)
+  if (grime > 0) {
+    for (let i = 0; i < 5 * grime; i++) {
+      const x = 18 + Math.floor(noise2(i * 3.7, 91) * 150)
+      const y = VOID_H + 158 + Math.floor(noise2(61, i) * 25)
+      pxa(ctx, x, y, 6, 3, i % 2 ? P.boneDeep : '#4a3520', 0.5)
+    }
+  }
+}
+
+function drawStreetPerson(ctx: Ctx, x: number, y: number, body: string, lit: string, flip = false): void {
+  const step = flip ? -1 : 1
+  px(ctx, x - 3, y - 22, 6, 6, P.skinShade)
+  px(ctx, x - 4, y - 25, 8, 4, '#16100d')
+  px(ctx, x - 5, y - 16, 10, 12, body)
+  px(ctx, x - 5, y - 16, 10, 1, lit)
+  pxLine(ctx, x - 4, y - 12, x - 8 * step, y - 5, body, 2)
+  pxLine(ctx, x + 4, y - 12, x + 7 * step, y - 6, body, 2)
+  px(ctx, x - 4, y - 4, 4, 6, '#101820')
+  px(ctx, x + 1, y - 4, 4, 6, '#101820')
+  px(ctx, x - 5, y + 1, 6, 2, '#05080d')
+  px(ctx, x + 1, y + 1, 6, 2, '#05080d')
+}
+
+function drawStreetPeople(ctx: Ctx, t: number): void {
+  for (const p of STREET_PEOPLE) {
+    const span = R.w + 80
+    const raw = p.seed + t * p.speed
+    const x = p.speed > 0 ? (raw % span) - 40 : R.w + 40 - (Math.abs(raw) % span)
+    pxa(ctx, x - 8, p.y + 1, 16, 3, '#000000', 0.35)
+    drawStreetPerson(ctx, Math.round(x), p.y, p.c, p.lit, p.speed < 0)
+  }
+}
+
+function drawStreetLaptopFeed(ctx: Ctx, t: number, edge: number): void {
+  const feed = 0.35 + edge * 0.5
+  drawMiniChart(
+    ctx,
+    76,
+    VOID_H + 126,
+    39,
+    8,
+    [0.2, 0.28, 0.24, 0.39, 0.36, 0.52, 0.48, 0.61],
+    P.tealLit,
+    t,
+    feed,
+  )
+  lightPool(ctx, 96, VOID_H + 130, 30, P.tealLit, 0.05 * feed)
+}
 function drawCeilingVoid(ctx: Ctx): void {
   px(ctx, 0, 0, R.w, VOID_H, '#05080d')
 
@@ -197,7 +320,8 @@ function drawMonitorCase(ctx: Ctx, x: number, y: number, w: number, h: number): 
 }
 
 function drawMonitorBank(ctx: Ctx, tier: number, cosmetics: ActiveCosmetics): void {
-  for (const m of MONITORS) drawMonitorCase(ctx, m.x, m.y, m.w, m.h)
+  const active = tier >= 4 ? MONITORS : tier >= 3 ? MONITORS.slice(0, 2) : [MONITORS[1]]
+  for (const m of active) drawMonitorCase(ctx, m.x, m.y, m.w, m.h)
 
   if (cosmetics.monitor === 'cos_monitor_ultrawide') {
     drawMonitorCase(ctx, 49, 45, 94, 21)
@@ -284,6 +408,11 @@ function drawProgressionUpgrades(ctx: Ctx, tier: number, cosmetics: ActiveCosmet
   }
 
   if (tier >= 6) {
+    px(ctx, 103, 35, 6, 49, '#102336')
+    px(ctx, 105, 24, 2, 11, '#17314a')
+    px(ctx, 104, 19, 1, 5, P.goldLit)
+    px(ctx, 101, 47, 10, 1, '#274864')
+    for (let y = 42; y < 82; y += 8) px(ctx, 105, y, 2, 1, P.goldLit)
     outline(ctx, 53, 15, 87, 8, P.ink, 1)
     px(ctx, 54, 16, 85, 6, '#061018')
     for (let x = 58; x < 134; x += 11) px(ctx, x, 18, 7, 1, x % 2 ? P.greenLit : P.tealLit)
@@ -419,10 +548,18 @@ function drawFloor(ctx: Ctx): void {
   pxa(ctx, 0, top, R.w, 5, '#000000', 0.36)
 }
 
-function drawChair(ctx: Ctx): void {
+function drawChair(ctx: Ctx, tier: number): void {
   const x = 10
   const y = 152
-  // reclined office chair where recover lands
+  if (tier < 3) {
+    px(ctx, x + 8, y + 15, 29, 8, '#4a3520')
+    px(ctx, x + 8, y + 15, 29, 2, '#72523a')
+    outline(ctx, x + 8, y + 15, 29, 8, P.ink, 1)
+    px(ctx, x + 12, y + 23, 4, 12, '#2c2119')
+    px(ctx, x + 29, y + 23, 4, 12, '#2c2119')
+    return
+  }
+
   px(ctx, x + 16, y - 10, 22, 24, P.plateDark)
   px(ctx, x + 16, y - 10, 3, 24, P.plateLit)
   px(ctx, x + 19, y - 8, 17, 18, '#202a35')
@@ -548,6 +685,12 @@ function buildStatic(grime: number, tier: number, cosmetics: ActiveCosmetics): H
   const ctx = cv.getContext('2d')!
   ctx.imageSmoothingEnabled = false
 
+  if (tier <= 1) {
+    drawStreetStatic(ctx, grime, cosmetics)
+    drawForeground(ctx)
+    return cv
+  }
+
   drawCeilingVoid(ctx)
 
   ctx.save()
@@ -555,14 +698,16 @@ function buildStatic(grime: number, tier: number, cosmetics: ActiveCosmetics): H
   drawWall(ctx, cosmetics)
   drawCityWindow(ctx)
   drawProgressionUpgrades(ctx, tier, cosmetics)
-  drawSideLight(ctx, 17, 66)
-  drawSideLight(ctx, 161, 66, true)
+  if (tier >= 4) {
+    drawSideLight(ctx, 17, 66)
+    drawSideLight(ctx, 161, 66, true)
+  }
   drawNotesBoard(ctx, tier)
   drawMonitorBank(ctx, tier, cosmetics)
   drawSkirting(ctx)
   drawDesk(ctx, tier, cosmetics)
   drawFloor(ctx)
-  drawChair(ctx)
+  drawChair(ctx, tier)
   drawCoffeeStack(ctx, cosmetics)
   drawGrime(ctx, grime)
   ctx.restore()
@@ -597,6 +742,19 @@ export function drawRoom(ctx: Ctx, o: RoomOpts): void {
   const cosmetics = o.cosmetics ?? {}
   ctx.drawImage(getStatic(o.grime, o.tier, cosmetics), 0, 0)
 
+  if (o.tier <= 1) {
+    drawStreetPeople(ctx, o.t)
+    drawStreetLaptopFeed(ctx, o.t, o.edge)
+    pxa(ctx, 63, VOID_H + 118, 70, 38, P.spirit, 0.03 + o.edge * 0.03)
+    const shade = o.heroShadow ?? 1
+    if (shade > 0.03) {
+      const hx = SCENE.heroX + Math.round(o.heroShift ?? 0)
+      pxa(ctx, hx - 16, SCENE.heroY - 3, 32, 5, '#000000', 0.5 * shade)
+      pxa(ctx, hx - 10, SCENE.heroY, 20, 2, '#000000', 0.42 * shade)
+    }
+    return
+  }
+
   const flick = 0.86 + Math.sin(o.t / 180) * 0.08 + Math.sin(o.t / 67) * 0.05
   const lightStrength = (1 - o.dim * 0.72) * flick
 
@@ -617,7 +775,8 @@ export function drawRoom(ctx: Ctx, o: RoomOpts): void {
     [0.74, 0.66, 0.78, 0.56, 0.62, 0.48, 0.58, 0.43, 0.51, 0.37],
     [0.28, 0.28, 0.34, 0.33, 0.42, 0.49, 0.61, 0.67],
   ] as const
-  MONITORS.forEach((m, mi) => {
+  const activeMonitors = o.tier >= 4 ? MONITORS : o.tier >= 3 ? MONITORS.slice(0, 2) : [MONITORS[1]]
+  activeMonitors.forEach((m, mi) => {
     const sx = m.x + 5
     const sy = m.y + 6
     const sw = m.w - 10

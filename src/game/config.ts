@@ -576,12 +576,12 @@ export const CAREER_MILESTONES = [
 ] as const
 
 export const PROGRESSION_TIERS = [
-  { tier: 1, min: 1, status: 'Bare Desk', room: 'Starter closet desk' },
-  { tier: 2, min: 6, status: 'First Routine', room: 'Cleaner desk corner' },
-  { tier: 3, min: 11, status: 'Research Setup', room: 'Monitor nook' },
-  { tier: 4, min: 16, status: 'Junior Seat', room: 'Serious workstation' },
-  { tier: 5, min: 21, status: 'Desk Seat', room: 'Pro apartment desk' },
-  { tier: 6, min: 26, status: 'Quant Pit', room: 'City trading room' },
+  { tier: 1, min: 1, status: 'Street Start', room: 'Street corner laptop' },
+  { tier: 2, min: 6, status: 'Rented Room', room: 'Cheap rented desk' },
+  { tier: 3, min: 11, status: 'Second Screen', room: 'Two-monitor desk' },
+  { tier: 4, min: 16, status: 'Trading Corner', room: 'Dedicated trading corner' },
+  { tier: 5, min: 21, status: 'Better Apartment', room: 'Cleaner apartment setup' },
+  { tier: 6, min: 26, status: 'Burj View', room: 'Pro skyline workstation' },
 ] as const
 
 export function xpForLevel(level: number): number {

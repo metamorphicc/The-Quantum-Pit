@@ -36,7 +36,7 @@ export function WardenPlinth({
       const t = s.settings.reduceMotion ? 1200 : now
       const tier = progressionTierForLevel(levelFromXp(s.xp)).tier
       drawAlcove(ctx, width, height, t, tier)
-      drawWardenPortrait(ctx, width / 2, height - 8, s.look, t, s.stats)
+      drawWardenPortrait(ctx, width / 2, height - 8, s.look, t, s.stats, tier)
     }
     raf = requestAnimationFrame(frame)
     return () => cancelAnimationFrame(raf)
