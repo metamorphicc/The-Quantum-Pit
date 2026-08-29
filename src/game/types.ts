@@ -31,6 +31,7 @@ export type ScreenId =
   | 'bet'
   | 'rig'
   | 'shop'
+  | 'social'
   | 'profile'
   | 'settings'
 export type ActivityKind =
@@ -301,6 +302,14 @@ export interface DailyLoginState {
   bestStreak: number
   lastClaimDay: number
 }
+
+export interface SocialState {
+  posts: number
+  viralPosts: number
+  backfires: number
+  lastPostedTradeNo: number
+  lastPostAt: number
+}
 export interface SaveData {
   version: number
   /** what the player calls him - renameable, defaults to WORLD.hero */
@@ -334,6 +343,7 @@ export interface SaveData {
   /** daily/weekly/monthly + milestone progress; see game/tasks.ts */
   tasks: TasksState
   dailyLogin: DailyLoginState
+  social: SocialState
   /** the board as last scanned */
   markets: MarketState[]
   /** epoch ms of the last scan */

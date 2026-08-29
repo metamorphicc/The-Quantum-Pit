@@ -566,9 +566,15 @@
 
 .room__status {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(96px, 118px);
+  grid-template-columns: minmax(0, 1fr) minmax(144px, 164px);
   align-items: stretch;
   gap: 6px;
+}
+
+.room__status-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px;
 }
 
 .room__status-text {
@@ -1145,6 +1151,105 @@
 .daily-login__skip:active {
   transform: translateY(3px);
   box-shadow: inset 0 2px 0 rgba(255, 235, 190, 0.06);
+}
+
+.social__hero {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.social__avatar {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  background: #0b1118;
+  border: 3px solid var(--ink);
+  box-shadow:
+    inset 0 2px 0 rgba(199, 242, 255, 0.12),
+    0 3px 0 var(--ink);
+}
+
+.social__hero h2 {
+  margin: 2px 0 5px;
+  color: var(--bone);
+  font-size: 16px;
+  line-height: 1;
+  text-transform: uppercase;
+  text-shadow: 2px 2px 0 var(--ink);
+}
+
+.social__hero p:not(.t-label) {
+  margin: 0;
+  color: var(--bone-dim);
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.social__rows {
+  padding-top: 8px;
+  padding-bottom: 0;
+}
+
+.social__ticket {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 9px;
+  padding: 9px;
+  background: #0b1118;
+  border: 3px solid var(--ink);
+  box-shadow:
+    inset 3px 0 0 var(--teal),
+    inset 0 2px 0 rgba(199, 242, 255, 0.08);
+}
+
+.social__ticket.is-loss {
+  box-shadow:
+    inset 3px 0 0 var(--ember),
+    inset 0 2px 0 rgba(199, 242, 255, 0.08);
+}
+
+.social__ticket-top,
+.social__ticket-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-family: var(--font-ui);
+  text-transform: uppercase;
+  text-shadow: 1px 1px 0 var(--ink);
+}
+
+.social__ticket-top span {
+  color: var(--bone-deep);
+  font-size: 8px;
+  letter-spacing: 0.08em;
+}
+
+.social__ticket-top b {
+  color: var(--teal-lit);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.social__ticket.is-loss .social__ticket-top b {
+  color: var(--ember-lit);
+}
+
+.social__ticket p {
+  margin: 0;
+  color: var(--bone);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.social__ticket-meta span {
+  color: var(--bone-dim);
+  font-size: 8px;
 }
 .quest-tracker {
   position: absolute;

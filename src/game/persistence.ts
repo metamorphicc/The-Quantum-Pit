@@ -28,11 +28,13 @@ import type {
   TasksState,
   TraderClassId,
   DailyLoginState,
+  SocialState,
 } from './types'
 import { clamp } from './util'
 import { ACHIEVEMENT_BY_ID } from './achievements'
 import { snapshotBaseline } from './tasks'
 import { dayIndex } from './daily'
+import { freshSocial } from './social'
 import {
   cloudAvailable,
   cloudGet,
@@ -172,6 +174,7 @@ function migrate(input: Partial<SaveData>, base: SaveData): SaveData {
     activeCosmetics: readActiveCosmetics(input.activeCosmetics),
     tasks: readTasks(input.tasks, { xp, tally }, base.tasks),
     dailyLogin: readDailyLogin(input.dailyLogin, base.dailyLogin),
+    social: readSocial(input.social),
     markets: readMarkets(input.markets),
     marketsAt: num(input.marketsAt, base.marketsAt),
     hedgeUntil: num(input.hedgeUntil, base.hedgeUntil),
@@ -192,6 +195,19 @@ function readDailyLogin(input: unknown, fallback: DailyLoginState): DailyLoginSt
     streak: Math.max(0, Math.floor(num(raw.streak, 0))),
     bestStreak: Math.max(0, Math.floor(num(raw.bestStreak, 0))),
     lastClaimDay: Math.min(today, lastClaimDay),
+  }
+}
+
+function readSocial(input: unknown): SocialState {
+  const fallback = freshSocial()
+  if (!input || typeof input !== 'object') return fallback
+  const raw = input as Partial<SocialState>
+  return {
+    posts: Math.max(0, Math.floor(num(raw.posts, fallback.posts))),
+    viralPosts: Math.max(0, Math.floor(num(raw.viralPosts, fallback.viralPosts))),
+    backfires: Math.max(0, Math.floor(num(raw.backfires, fallback.backfires))),
+    lastPostedTradeNo: Math.max(0, Math.floor(num(raw.lastPostedTradeNo, fallback.lastPostedTradeNo))),
+    lastPostAt: Math.max(0, Math.floor(num(raw.lastPostAt, fallback.lastPostAt))),
   }
 }
 
@@ -391,6 +407,7 @@ export function writeSave(data: SaveData, immediateCloud = false): void {
     activeCosmetics: data.activeCosmetics,
     tasks: data.tasks,
     dailyLogin: data.dailyLogin,
+    social: data.social,
     markets: data.markets,
     marketsAt: data.marketsAt,
     hedgeUntil: data.hedgeUntil,

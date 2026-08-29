@@ -210,7 +210,18 @@ export function RoomScreen() {
           className={`room__status ${broke ? 'is-broke' : ''} ${tutorial.target === 'status' ? 'is-tutorial-target' : ''}`}
         >
           <span className="room__status-text">{plainStatus}</span>
-          {renderAction('scan', { utility: true })}
+          <div className="room__status-actions">
+            {renderAction('scan', { utility: true })}
+            <PixelButton
+              label="Social"
+              icon="star"
+              variant="ghost"
+              size="sm"
+              className="room__action-utility"
+              sublabel="Rep"
+              onClick={() => setScreen('social')}
+            />
+          </div>
         </div>
 
         <PixelPanel

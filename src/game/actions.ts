@@ -32,6 +32,7 @@ import {
 } from './tasks'
 import { COPY } from './copy'
 import { nextDailyLogin, rewardLabel } from './daily'
+import { SOCIAL_NOTE_COOLDOWN, SOCIAL_POST_COOLDOWN, socialStatusForRep } from './social'
 import { achievementToast, burst, emitFx, floatText, toast } from './fx'
 import {
   clearSave,
@@ -501,6 +502,110 @@ export function deskRead(): ActionResult {
   buzz('light')
   showGains(gain)
   return { ok: true, message: '', gain }
+}
+
+export function postLatestTrade(): ActionResult {
+  const s = getState()
+  const result = s.lastTrade
+  const tradeNo = s.tally.bets
+  if (!result || tradeNo <= 0) {
+    play('deny')
+    say('Nothing settled yet. The timeline does not need imaginary PnL.')
+    return refusal('No settled ticket to post.')
+  }
+  if (s.social.lastPostedTradeNo === tradeNo) {
+    play('deny')
+    say('Already posted that fill. Even the timeline has standards.')
+    return refusal('Latest trade already posted.')
+  }
+  if (!isReady('social_post')) {
+    play('deny')
+    say(COPY.cooldown())
+    return refusal(COPY.cooldown())
+  }
+
+  const now = Date.now()
+  const won = result.won
+  const viral = won && chance(Math.min(0.34, 0.08 + s.stats.rep / 360 + Math.max(0, result.pnl) / 900))
+  const backfire = !won && chance(0.45)
+  const baseRep = won
+    ? 6 + Math.min(10, Math.floor(Math.max(0, result.pnl) / 28))
+    : backfire
+      ? -4
+      : 2
+  const repGain = baseRep + (viral ? 10 : 0)
+  const gain: Partial<Stats> = {
+    rep: repGain,
+    focus: won ? -4 : -3,
+    heat: viral ? 7 : backfire ? 8 : 3,
+  }
+
+  setState({
+    stats: addStats(gain),
+    social: {
+      ...s.social,
+      posts: s.social.posts + 1,
+      viralPosts: s.social.viralPosts + (viral ? 1 : 0),
+      backfires: s.social.backfires + (backfire ? 1 : 0),
+      lastPostedTradeNo: tradeNo,
+      lastPostAt: now,
+    },
+  })
+
+  startActivity('pnl', 900)
+  setCooldown('social_post', SOCIAL_POST_COOLDOWN)
+  showGains(gain)
+  play(viral ? 'fanfare' : backfire ? 'deny' : 'spark')
+  notify(backfire ? 'warning' : 'success')
+  burst(viral ? 'spark' : backfire ? 'ember' : 'coin', { count: viral ? 16 : 8, power: viral ? 1.25 : 1 })
+
+  if (viral) {
+    toast('Post went viral', 'good', `+${repGain} Rep - ${socialStatusForRep(s.stats.rep + repGain)}`)
+    say('The fill makes the rounds. He pretends not to refresh it.')
+  } else if (backfire) {
+    toast('Bad post', 'bad', `${repGain} Rep - the loss sounded worse online`)
+    say('He posted through it. The replies did not improve the trade.')
+  } else {
+    toast('Trade posted', won ? 'good' : 'plain', `${repGain > 0 ? '+' : ''}${repGain} Rep`)
+    say(won ? 'Clean fill, clean post. Small room, louder timeline.' : 'He posts the lesson instead of the cope. Respectable enough.')
+  }
+
+  return { ok: true, message: `${repGain > 0 ? '+' : ''}${repGain} Rep`, gain }
+}
+
+export function writeSocialNote(): ActionResult {
+  const s = getState()
+  if (!isReady('social_note')) {
+    play('deny')
+    say(COPY.cooldown())
+    return refusal(COPY.cooldown())
+  }
+  if (s.stats.focus < 16) return refuse('Too fried to write anything useful. Take a break first.')
+
+  const now = Date.now()
+  const viral = chance(Math.min(0.22, 0.06 + s.stats.edge / 650 + s.stats.rep / 500))
+  const repGain = viral ? 8 : 3
+  const gain: Partial<Stats> = { rep: repGain, focus: -10, heat: viral ? 5 : 2 }
+
+  setState({
+    stats: addStats(gain),
+    social: {
+      ...s.social,
+      posts: s.social.posts + 1,
+      viralPosts: s.social.viralPosts + (viral ? 1 : 0),
+      lastPostAt: now,
+    },
+  })
+
+  startActivity('research', 1200)
+  setCooldown('social_note', SOCIAL_NOTE_COOLDOWN)
+  showGains(gain)
+  play(viral ? 'fanfare' : 'spark')
+  notify('success')
+  burst(viral ? 'spark' : 'crumb', { count: viral ? 12 : 7, power: viral ? 1.15 : 1 })
+  toast(viral ? 'Note caught on' : 'Desk note posted', 'good', `+${repGain} Rep`)
+  say(viral ? 'A tiny note travels further than expected.' : 'He writes one useful thing and logs off before ruining it.')
+  return { ok: true, message: `+${repGain} Rep`, gain }
 }
 function rotateMarkets(list: MarketDef[], seed: number): MarketDef[] {
   if (list.length <= 1) return list

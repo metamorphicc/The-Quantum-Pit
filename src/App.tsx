@@ -13,6 +13,7 @@ import { RoomScreen } from './screens/RoomScreen'
 import { ScanScreen } from './screens/ScanScreen'
 import { SettingsScreen } from './screens/SettingsScreen'
 import { ShopScreen } from './screens/ShopScreen'
+import { SocialScreen } from './screens/SocialScreen'
 import { initTelegram } from './telegram/telegram'
 export function App() {
   const screen = useGame((s) => s.screen)
@@ -67,6 +68,7 @@ export function App() {
       {screen === 'scan' ? <ScanScreen /> : null}
       {screen === 'bet' ? <BetScreen /> : null}
       {screen === 'shop' ? <ShopScreen /> : null}
+      {screen === 'social' ? <SocialScreen /> : null}
       {screen === 'profile' ? <ProfileScreen /> : null}
       {screen === 'settings' ? <SettingsScreen /> : null}
       <QuestWindow />

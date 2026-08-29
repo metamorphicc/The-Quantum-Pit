@@ -14,6 +14,7 @@ import { P } from '../styles/palette'
 import type { IconName } from '../components/PixelIcon'
 import { freshTasks } from './tasks'
 import { freshDailyLogin } from './daily'
+import { freshSocial } from './social'
 export const GAME_VERSION = '2.0.0'
 
 /**
@@ -24,7 +25,7 @@ export const GAME_VERSION = '2.0.0'
 export const SAVE_KEY_PREFIX = 'ktw.save.v1:'
 export const SAVE_KEY_LEGACY = 'ktw.save.v1'
 export const CLOUD_SAVE_KEY = 'ktw_save_v1'
-export const SAVE_VERSION = 12
+export const SAVE_VERSION = 13
 
 /** Longest name the player may give him. */
 export const NAME_MAX = 18
@@ -954,6 +955,7 @@ export function freshSave(now: number): SaveData {
     activeCosmetics: {},
     tasks: freshTasks(now),
     dailyLogin: freshDailyLogin(now),
+    social: freshSocial(),
     markets: [],
     marketsAt: 0,
     hedgeUntil: 0,
