@@ -209,137 +209,153 @@ export function poseFor({ activity, phase, t, stats }: PoseInput): Pose {
 
   return p
 }
+interface OutfitLayer {
+  body: string
+  shade: string
+  light: string
+  tee: string
+  accent: string
+  pants: string
+  pantsShade: string
+  shoes: string
+}
+
+interface ToolLayer {
+  accent: string
+  kind: 'keyboard' | 'calc' | 'chart' | 'pad' | 'risk'
+}
+
 interface Kit {
-  cloak: { dark: string; mid: string; lit: string; ragged: boolean; fur: boolean }
-  blade: { core: string; edge: string; glow: string | null; glowMul: number }
-  head: 'bare' | 'circlet' | 'antler' | 'crown'
+  outfit: OutfitLayer
+  tool: ToolLayer
+  head: 'hair' | 'visor' | 'antenna' | 'cap'
 }
 
 function kitFor(look: EquippedLook): Kit {
-  const cloakId = look.cloak
-  const cloak =
-    cloakId === 'cloak_watch'
-      ? { dark: P.tealDeep, mid: P.teal, lit: P.tealLit, ragged: false, fur: false }
-      : cloakId === 'cloak_pelt'
-        ? { dark: P.boneDeep, mid: P.boneDim, lit: P.bone, ragged: false, fur: true }
-        : cloakId === 'cloak_ember'
-          ? { dark: P.emberDeep, mid: P.ember, lit: P.emberLit, ragged: false, fur: false }
-          : cloakId === 'cloak_rag'
-            ? { dark: '#1d2935', mid: '#2e3d4c', lit: '#4d6072', ragged: false, fur: false }
-            : { dark: '#241d18', mid: '#2e251d', lit: '#3a2e24', ragged: true, fur: false }
+  const outfit =
+    look.cloak === 'cloak_watch'
+      ? {
+          body: '#24515d',
+          shade: '#132c37',
+          light: '#4c8790',
+          tee: '#dce9e7',
+          accent: P.tealLit,
+          pants: '#172a3d',
+          pantsShade: '#0d1827',
+          shoes: P.boneDim,
+        }
+      : look.cloak === 'cloak_pelt'
+        ? {
+            body: '#4d5568',
+            shade: '#242833',
+            light: '#8490a0',
+            tee: '#e8dfc8',
+            accent: P.bone,
+            pants: '#1b2530',
+            pantsShade: '#101820',
+            shoes: P.stoneHi,
+          }
+        : look.cloak === 'cloak_ember'
+          ? {
+              body: '#7d211d',
+              shade: '#3f1513',
+              light: '#d84a3a',
+              tee: '#f0e2cf',
+              accent: P.emberLit,
+              pants: '#182235',
+              pantsShade: '#0d1420',
+              shoes: P.emberDeep,
+            }
+          : {
+              body: '#273746',
+              shade: '#152231',
+              light: '#4d6072',
+              tee: '#e8dfc8',
+              accent: P.spiritLit,
+              pants: '#17263a',
+              pantsShade: '#0c1625',
+              shoes: P.boneDim,
+            }
 
-  const bladeId = look.blade
-  const blade =
-    bladeId === 'blade_spirit'
-      ? { core: P.spiritLit, edge: P.spiritPale, glow: P.spirit, glowMul: 1 }
-      : bladeId === 'blade_ember'
-        ? { core: P.emberLit, edge: P.emberPale, glow: P.ember, glowMul: 1 }
-        : // plain steel, but his own spirit still runs down the fullers
-          { core: P.stoneHi, edge: P.bone, glow: P.spirit, glowMul: 0.42 }
+  const tool =
+    look.blade === 'blade_calc'
+      ? { accent: P.goldLit, kind: 'calc' as const }
+      : look.blade === 'blade_spirit'
+        ? { accent: P.spiritLit, kind: 'chart' as const }
+        : look.blade === 'blade_macropad'
+          ? { accent: P.tealLit, kind: 'keyboard' as const }
+          : look.blade === 'blade_depth'
+            ? { accent: P.spiritPale, kind: 'pad' as const }
+            : look.blade === 'blade_ember'
+              ? { accent: P.emberLit, kind: 'risk' as const }
+              : { accent: P.stoneHi, kind: 'keyboard' as const }
 
   const head =
     look.head === 'head_circlet'
-      ? 'circlet'
+      ? 'visor'
       : look.head === 'head_antler'
-        ? 'antler'
+        ? 'antenna'
         : look.head === 'head_crown'
-          ? 'crown'
-          : 'bare'
+          ? 'cap'
+          : 'hair'
 
-  return { cloak, blade, head }
-}
-function drawCape(ctx: Ctx, cx: number, groundY: number, pose: Pose, kit: Kit): void {
-  const top = groundY - 44 + pose.bob + Math.round(pose.sit * 12)
-  const bottom = groundY - 18 - Math.round(pose.sit * 7)
-  const sway = pose.capeSway + pose.lean * -0.6
-  const { dark, mid, lit, fur } = kit.cloak
-
-  // hoodie back, visible behind the torso
-  for (let y = top; y < bottom; y++) {
-    const k = (y - top) / Math.max(1, bottom - top)
-    const halfW = 7 + k * 2
-    const off = Math.round(sway * k)
-    const x0 = cx - halfW + off
-    const w = halfW * 2
-    px(ctx, x0, y, w, 1, k < 0.18 ? lit : k < 0.6 ? mid : dark)
-    if (fur && y % 3 === 0) {
-      px(ctx, x0 - 1, y, 2, 1, lit)
-      px(ctx, x0 + w - 1, y, 2, 1, lit)
-    }
-  }
-
-  // hood folded around the neck
-  px(ctx, cx - 7 + pose.lean, top - 2, 14, 6, dark)
-  px(ctx, cx - 5 + pose.lean, top - 1, 10, 2, lit)
-  px(ctx, cx - 4 + pose.lean, top + 2, 8, 1, P.ink)
-  px(ctx, cx - 8 + Math.round(sway), bottom, 16, 2, dark)
+  return { outfit, tool, head }
 }
 
-function drawLegs(ctx: Ctx, cx: number, groundY: number, pose: Pose): void {
+function bodyTop(groundY: number, pose: Pose): number {
+  return groundY - 43 + pose.bob + Math.round(pose.sit * 12)
+}
+
+function drawLegs(ctx: Ctx, cx: number, groundY: number, pose: Pose, kit: Kit): void {
+  const { outfit } = kit
   if (pose.sit > 0.5) {
-    // folded, asleep in the chair
-    const y = groundY - 8
-    px(ctx, cx - 11, y, 10, 5, '#26364a')
-    px(ctx, cx + 1, y, 10, 5, '#26364a')
-    px(ctx, cx - 11, y, 10, 1, '#3c4d62')
-    px(ctx, cx + 1, y, 10, 1, '#3c4d62')
-    px(ctx, cx - 12, y + 2, 4, 3, P.boneDim)
-    px(ctx, cx + 8, y + 2, 4, 3, P.boneDim)
+    const y = groundY - 9
+    px(ctx, cx - 10, y, 9, 5, outfit.pants)
+    px(ctx, cx + 1, y, 9, 5, outfit.pants)
+    px(ctx, cx - 10, y, 9, 1, outfit.light)
+    px(ctx, cx + 1, y, 9, 1, outfit.light)
+    px(ctx, cx - 11, y + 3, 5, 3, outfit.shoes)
+    px(ctx, cx + 6, y + 3, 5, 3, outfit.shoes)
     return
   }
 
   const stepOff = pose.step ? 2 : 0
   for (const side of [-1, 1] as const) {
-    const lx = cx + (side < 0 ? -7 : 1)
+    const lx = cx + (side < 0 ? -6 : 1)
     const lift = pose.step && side < 0 ? stepOff : 0
-    // jeans
-    px(ctx, lx, groundY - 21 - lift, 6, 14, '#203049')
-    px(ctx, lx, groundY - 21 - lift, 6, 1, '#3b516d')
-    px(ctx, lx + (side < 0 ? 0 : 5), groundY - 21 - lift, 1, 14, '#111b29')
-    px(ctx, lx + 2, groundY - 15 - lift, 2, 8, '#172438')
-    // socks / house shoes
-    px(ctx, lx - 1, groundY - 8 - lift, 8, 7, P.boneDim)
-    px(ctx, lx - 1, groundY - 8 - lift, 8, 1, P.bone)
-    px(ctx, lx - 1, groundY - 2 - lift, 8, 1, P.ink)
+    px(ctx, lx, groundY - 25 - lift, 5, 19, outfit.pants)
+    px(ctx, lx, groundY - 25 - lift, 1, 19, outfit.pantsShade)
+    px(ctx, lx + 4, groundY - 25 - lift, 1, 19, '#233754')
+    px(ctx, lx + 1, groundY - 15 - lift, 2, 9, outfit.pantsShade)
+    px(ctx, lx - 1, groundY - 6 - lift, 7, 4, outfit.shoes)
+    px(ctx, lx - 1, groundY - 3 - lift, 7, 1, P.ink)
   }
 }
 
 function drawTorso(ctx: Ctx, cx: number, groundY: number, pose: Pose, kit: Kit): void {
   const lean = pose.lean
-  const drop = Math.round(pose.sit * 12)
-  const top = groundY - 44 + pose.bob + drop
-  const waist = groundY - 29 + drop
-  const { dark, mid, lit } = kit.cloak
+  const top = bodyTop(groundY, pose)
+  const sitTrim = Math.round(pose.sit * 5)
+  const { outfit, tool } = kit
+  const x = cx - 7 + lean
 
-  // hoodie body
-  px(ctx, cx - 8 + lean, top, 16, waist - top + 11 - Math.round(pose.sit * 4), mid)
-  px(ctx, cx - 8 + lean, top, 16, 2, lit)
-  px(ctx, cx - 8 + lean, top, 1, waist - top + 9, lit)
-  px(ctx, cx + 7 + lean, top, 1, waist - top + 9, dark)
-  px(ctx, cx - 8 + lean, waist + 8, 16, 2, dark)
+  px(ctx, x, top, 14, 20 - sitTrim, outfit.body)
+  px(ctx, x, top, 14, 2, outfit.light)
+  px(ctx, x, top + 2, 1, 16 - sitTrim, outfit.light)
+  px(ctx, x + 13, top + 2, 1, 17 - sitTrim, outfit.shade)
+  px(ctx, x + 1, top + 18 - sitTrim, 12, 3, outfit.shade)
 
-  // tee peeking through the unzipped hoodie
-  px(ctx, cx - 3 + lean, top + 5, 6, 17 - Math.round(pose.sit * 4), '#d7dccf')
-  px(ctx, cx - 3 + lean, top + 5, 6, 1, P.white)
-  px(ctx, cx - 1 + lean, top + 7, 2, 15, kit.blade.glow ?? P.spirit)
+  px(ctx, cx - 3 + lean, top + 4, 6, 16 - sitTrim, outfit.tee)
+  px(ctx, cx - 1 + lean, top + 4, 2, 17 - sitTrim, P.ink)
+  px(ctx, cx - 2 + lean, top + 7, 4, 8, tool.accent)
+  px(ctx, cx - 1 + lean, top + 7, 2, 8, P.spiritPale)
 
-  // zipper and hoodie strings
-  px(ctx, cx - 1 + lean, top + 3, 2, waist - top + 7, P.ink)
+  px(ctx, cx - 12 + lean, top + 1, 5, 5, outfit.body)
+  px(ctx, cx + 7 + lean, top + 1, 5, 5, outfit.body)
+  px(ctx, cx - 12 + lean, top + 1, 5, 1, outfit.light)
+  px(ctx, cx + 7 + lean, top + 1, 5, 1, outfit.light)
 
-  // edge signal on the shirt
-  const runeY = top + 5
-  const glow = pose.aura
-  pxa(ctx, cx - 3 + lean, runeY, 6, 6, P.spirit, 0.09 * glow)
-  px(ctx, cx - 3 + lean, runeY + 5, 6, 1, kit.blade.glow ?? P.spirit)
-  px(ctx, cx + 1 + lean, runeY + 2, 1, 3, kit.blade.glow ?? P.spirit)
-
-  // soft shoulders
-  for (const side of [-1, 1] as const) {
-    const sx = side < 0 ? cx - 13 + lean : cx + 7 + lean
-    px(ctx, sx, top, 6, 5, mid)
-    px(ctx, sx, top, 6, 1, lit)
-    px(ctx, sx + (side < 0 ? 0 : 5), top, 1, 5, dark)
-  }
+  drawToolBadge(ctx, cx + 8 + lean, top + 15 - sitTrim, kit)
 }
 
 function drawArm(
@@ -347,59 +363,88 @@ function drawArm(
   shoulderX: number,
   shoulderY: number,
   hand: { x: number; y: number },
+  kit: Kit,
 ): { hx: number; hy: number } {
   const hx = shoulderX + hand.x
   const hy = shoulderY + hand.y
-  const ex = shoulderX + Math.round(hand.x * 0.62)
-  const ey = shoulderY + Math.round(hand.y * 0.55)
-  // hoodie sleeve + hand
-  pxLine(ctx, shoulderX, shoulderY, ex, ey, '#263646', 3)
-  pxLine(ctx, ex, ey, hx, hy, '#263646', 2)
-  pxLine(ctx, shoulderX, shoulderY, ex, ey, '#4d6072', 1)
-  px(ctx, ex - 1, ey - 1, 3, 2, '#1d2935')
-  px(ctx, hx - 1, hy - 2, 3, 4, P.skin)
-  px(ctx, hx - 1, hy - 2, 3, 1, P.skinLit)
-  px(ctx, hx - 1, hy + 1, 3, 1, P.skinShade)
+  const ex = shoulderX + Math.round(hand.x * 0.58)
+  const ey = shoulderY + Math.round(hand.y * 0.5)
+  const { outfit } = kit
+
+  pxLine(ctx, shoulderX, shoulderY, ex, ey, outfit.body, 2)
+  pxLine(ctx, ex, ey, hx, hy, outfit.body, 2)
+  pxLine(ctx, shoulderX, shoulderY, ex, ey, outfit.light, 1)
+  px(ctx, hx - 1, hy - 1, 3, 3, P.skin)
+  px(ctx, hx - 1, hy - 1, 3, 1, P.skinLit)
   return { hx, hy }
 }
 
-function drawHead(ctx: Ctx, cx: number, groundY: number, pose: Pose, kit: Kit): void {
+function drawHead(ctx: Ctx, cx: number, groundY: number, pose: Pose, kit: Kit, t: number): void {
   const drop = Math.round(pose.sit * 12) + pose.headDrop
-  const tilt = pose.headTilt
-  const top = groundY - 60 + pose.bob + drop
-  const hx = cx + tilt + Math.round(pose.lean * 0.5)
+  const top = groundY - 59 + pose.bob + drop
+  const hx = cx + pose.headTilt + Math.round(pose.lean * 0.5)
   const hair = '#241812'
-  const hairLit = '#3a271c'
+  const hairLit = '#4a2a18'
 
-  px(ctx, cx - 4 + pose.lean, top + 13, 8, 4, P.skinShade)
+  px(ctx, cx - 3 + pose.lean, top + 14, 6, 5, P.skinShade)
+  px(ctx, hx - 7, top + 4, 14, 13, P.skin)
+  px(ctx, hx - 7, top + 4, 14, 2, P.skinLit)
+  px(ctx, hx - 8, top + 8, 1, 5, P.skinShade)
+  px(ctx, hx + 7, top + 8, 1, 5, P.skinShade)
+  px(ctx, hx + 5, top + 7, 2, 9, P.skinShade)
 
-  // face
-  px(ctx, hx - 7, top + 3, 14, 12, P.skin)
-  px(ctx, hx - 7, top + 3, 14, 2, P.skinLit)
-  px(ctx, hx - 7, top + 3, 2, 11, P.skinLit)
-  px(ctx, hx + 5, top + 4, 2, 11, P.skinShade)
-
-  // messy dark hair
-  px(ctx, hx - 8, top, 16, 5, hair)
-  px(ctx, hx - 7, top, 12, 1, hairLit)
-  px(ctx, hx - 9, top + 3, 3, 6, hair)
-  px(ctx, hx + 6, top + 3, 3, 5, hair)
-  for (let i = 0; i < 5; i++) {
-    const sx = hx - 7 + i * 3
-    const h = 2 + Math.floor(noise2(i, top) * 4)
-    px(ctx, sx, top - h + 2, 2, h, i % 2 ? hair : hairLit)
+  px(ctx, hx - 8, top + 1, 16, 5, hair)
+  px(ctx, hx - 7, top + 1, 11, 1, hairLit)
+  px(ctx, hx - 9, top + 4, 3, 5, hair)
+  px(ctx, hx + 6, top + 4, 3, 5, hair)
+  for (let i = 0; i < 4; i++) {
+    const sx = hx - 6 + i * 4
+    const h = 2 + Math.floor(noise2(i, top + t * 0.001) * 3)
+    px(ctx, sx, top - h + 3, 2, h, i % 2 ? hair : hairLit)
   }
 
-  const browY = top + 6
-  px(ctx, hx - 6, browY, 5, 1, hair)
-  px(ctx, hx + 1, browY, 5, 1, hair)
+  drawHeadwear(ctx, hx, top, kit)
+  drawFace(ctx, hx, top, pose)
+
+  if (pose.dirt > 0) {
+    pxa(ctx, hx + 2, top + 12, 3, 2, '#4a3520', 0.42)
+    if (pose.dirt > 1) pxa(ctx, hx - 6, top + 11, 3, 2, '#4a3520', 0.42)
+  }
+}
+
+function drawHeadwear(ctx: Ctx, hx: number, top: number, kit: Kit): void {
+  switch (kit.head) {
+    case 'visor':
+      px(ctx, hx - 8, top + 5, 16, 3, P.plateDark)
+      px(ctx, hx - 5, top + 6, 10, 1, P.spiritLit)
+      break
+    case 'antenna':
+      px(ctx, hx - 9, top + 7, 3, 5, P.plateDark)
+      px(ctx, hx + 6, top + 7, 3, 5, P.plateDark)
+      pxLine(ctx, hx + 8, top + 7, hx + 12, top + 2, P.tealLit, 1)
+      px(ctx, hx + 12, top + 1, 2, 2, P.spiritPale)
+      break
+    case 'cap':
+      px(ctx, hx - 8, top + 2, 16, 4, P.gold)
+      px(ctx, hx - 8, top + 5, 19, 2, P.goldDark)
+      px(ctx, hx - 2, top + 2, 5, 1, P.goldLit)
+      break
+    default:
+      break
+  }
+}
+
+function drawFace(ctx: Ctx, hx: number, top: number, pose: Pose): void {
+  const browY = top + 8
+  const eyeY = top + 10
+  px(ctx, hx - 6, browY, 5, 1, '#241812')
+  px(ctx, hx + 1, browY, 5, 1, '#241812')
   if (pose.eyes === 'angry') {
-    px(ctx, hx - 6, browY + 1, 5, 1, hair)
-    px(ctx, hx + 1, browY + 1, 5, 1, hair)
+    px(ctx, hx - 6, browY + 1, 5, 1, '#241812')
+    px(ctx, hx + 1, browY + 1, 5, 1, '#241812')
   }
 
-  const eyeY = top + 8
-  const drawEye = (ox: number) => {
+  const eye = (ox: number) => {
     switch (pose.eyes) {
       case 'closed':
         px(ctx, hx + ox, eyeY + 1, 3, 1, P.skinShade)
@@ -412,79 +457,41 @@ function drawHead(ctx: Ctx, cx: number, groundY: number, pose: Pose, kit: Kit): 
         px(ctx, hx + ox - 1, eyeY - 1, 4, 4, P.bone)
         px(ctx, hx + ox, eyeY, 2, 2, P.spirit)
         break
-      case 'angry':
-        px(ctx, hx + ox, eyeY, 3, 2, P.bone)
-        px(ctx, hx + ox + (ox < 0 ? 1 : 0), eyeY + 1, 2, 1, P.ink)
-        break
       default:
         px(ctx, hx + ox, eyeY, 3, 2, P.bone)
         px(ctx, hx + ox + 1, eyeY, 1, 2, P.ink)
-        pxa(ctx, hx + ox + 1, eyeY, 1, 1, P.spiritLit, 0.5)
     }
   }
-  drawEye(-5)
-  drawEye(3)
+  eye(-5)
+  eye(3)
 
   px(ctx, hx - 1, eyeY + 2, 2, 3, P.skinShade)
-  px(ctx, hx - 1, eyeY + 4, 3, 1, P.skinShade)
-
-  if (pose.mouth === 'open') px(ctx, hx - 2, top + 15, 4, 2, '#3a1f16')
-  else if (pose.mouth === 'grin') px(ctx, hx - 3, top + 15, 6, 1, '#3a1f16')
-  else px(ctx, hx - 3, top + 15, 6, 1, P.skinShade)
-
-  if (pose.eyes === 'tired') {
-    pxa(ctx, hx - 6, eyeY + 3, 4, 1, P.spiritDeep, 0.32)
-    pxa(ctx, hx + 2, eyeY + 3, 4, 1, P.spiritDeep, 0.32)
-  }
-
-  switch (kit.head) {
-    case 'circlet':
-      px(ctx, hx - 8, top + 4, 16, 3, P.plateDark)
-      px(ctx, hx - 8, top + 4, 16, 1, P.plateLit)
-      px(ctx, hx - 5, top + 5, 10, 1, P.spiritLit)
-      break
-    case 'antler':
-      px(ctx, hx - 9, top + 5, 3, 9, P.plateDark)
-      px(ctx, hx + 6, top + 5, 3, 9, P.plateDark)
-      pxLine(ctx, hx - 7, top + 5, hx - 3, top + 2, P.plateLit, 1)
-      pxLine(ctx, hx + 7, top + 5, hx + 3, top + 2, P.plateLit, 1)
-      pxLine(ctx, hx + 7, top + 3, hx + 12, top - 4, P.tealLit, 1)
-      px(ctx, hx + 11, top - 5, 2, 2, P.spiritPale)
-      break
-    case 'crown':
-      px(ctx, hx - 8, top + 1, 16, 5, P.gold)
-      px(ctx, hx - 8, top + 5, 16, 1, P.goldDark)
-      px(ctx, hx + 4, top + 3, 7, 2, P.goldLit)
-      px(ctx, hx - 2, top + 2, 4, 2, P.blood)
-      break
-    default:
-      break
-  }
-
-  if (pose.dirt > 0) {
-    pxa(ctx, hx + 2, top + 10, 3, 2, '#4a3520', 0.45)
-    if (pose.dirt > 1) pxa(ctx, hx - 6, top + 9, 3, 2, '#4a3520', 0.45)
-  }
+  if (pose.mouth === 'open') px(ctx, hx - 2, top + 16, 4, 2, '#3a1f16')
+  else if (pose.mouth === 'grin') px(ctx, hx - 3, top + 16, 6, 1, '#3a1f16')
+  else px(ctx, hx - 3, top + 16, 6, 1, P.skinShade)
 }
 
-function drawProp(ctx: Ctx, hx: number, hy: number, pose: Pose): void {
+function drawToolBadge(ctx: Ctx, x: number, y: number, kit: Kit): void {
+  px(ctx, x - 2, y - 1, 5, 6, P.plateDark)
+  px(ctx, x - 1, y, 3, 3, '#061018')
+  px(ctx, x, y + 1, 2, 1, kit.tool.accent)
+}
+
+function drawProp(ctx: Ctx, hx: number, hy: number, pose: Pose, kit: Kit): void {
   switch (pose.prop) {
     case 'ledger':
-      // small notebook with a chart line
       px(ctx, hx - 5, hy - 3, 11, 7, P.bone)
       px(ctx, hx - 5, hy - 3, 11, 1, P.white)
       px(ctx, hx - 5, hy - 3, 1, 7, P.ink)
-      pxLine(ctx, hx - 3, hy + 1, hx + 4, hy - 1, P.tealLit, 1)
+      pxLine(ctx, hx - 3, hy + 1, hx + 4, hy - 1, kit.tool.accent, 1)
       break
     case 'slate':
-      // phone / small tablet for hedging
       px(ctx, hx - 4, hy - 5, 8, 10, P.plateDark)
       px(ctx, hx - 3, hy - 4, 6, 7, '#061018')
-      px(ctx, hx - 2, hy - 2, 4, 1, P.tealLit)
+      px(ctx, hx - 2, hy - 2, 4, 1, kit.tool.accent)
       px(ctx, hx - 1, hy + 1, 2, 1, P.emberLit)
       break
     case 'chips':
-      // two market tokens, pip up
       px(ctx, hx - 4, hy - 3, 4, 4, P.bone)
       px(ctx, hx - 3, hy - 2, 1, 1, P.ink)
       px(ctx, hx + 1, hy - 1, 4, 4, P.bone)
@@ -497,20 +504,17 @@ function drawProp(ctx: Ctx, hx: number, hy: number, pose: Pose): void {
 
 function drawAura(ctx: Ctx, cx: number, groundY: number, pose: Pose, t: number): void {
   const level = pose.aura
-  if (level <= 0.05) return
-  const count = 3 + Math.round(level * 4)
+  if (level <= 0.08) return
+  const count = 2 + Math.round(level * 3)
   for (let i = 0; i < count; i++) {
-    const ph = t / 900 + (i * Math.PI * 2) / count
-    const r = 15 + Math.sin(ph * 1.7 + i) * 4
-    const x = cx + Math.cos(ph) * r
-    const y = groundY - 30 + Math.sin(ph * 1.3) * 14
-    const a = (0.3 + 0.4 * Math.sin(ph * 2.1)) * level
-    pxa(ctx, x, y, 2, 2, P.spiritLit, Math.max(0, a))
-    if (a > 0.4) pxa(ctx, x, y, 1, 1, P.spiritPale, a)
+    const ph = t / 950 + (i * Math.PI * 2) / count
+    const x = cx + Math.cos(ph) * (14 + i)
+    const y = groundY - 31 + Math.sin(ph * 1.3) * 13
+    pxa(ctx, x, y, 2, 2, P.spiritLit, 0.18 * level)
   }
-  // ground shimmer
-  pxa(ctx, cx - 14, groundY - 3, 28, 2, P.spirit, 0.1 * level)
+  pxa(ctx, cx - 12, groundY - 3, 24, 2, P.spirit, 0.08 * level)
 }
+
 export function drawWarden(
   ctx: Ctx,
   originX: number,
@@ -522,43 +526,28 @@ export function drawWarden(
   const kit = kitFor(look)
   const cx = Math.round(originX + pose.shift)
   const gy = Math.round(groundY + (pose.sit > 0.5 ? 2 : 0))
+  const shoulderY = bodyTop(gy, pose) + 4
 
   drawAura(ctx, cx, gy, pose, t)
-  drawCape(ctx, cx, gy, pose, kit)
-  drawLegs(ctx, cx, gy, pose)
+  drawLegs(ctx, cx, gy, pose, kit)
   drawTorso(ctx, cx, gy, pose, kit)
 
-  const shoulderY = gy - 41 + pose.bob + Math.round(pose.sit * 12)
+  const back = drawArm(ctx, cx - 8 + pose.lean, shoulderY, pose.armL, kit)
+  drawProp(ctx, back.hx, back.hy, pose, kit)
+  drawHead(ctx, cx, gy, pose, kit, t)
+  drawArm(ctx, cx + 8 + pose.lean, shoulderY, pose.armR, kit)
 
-  // back arm first so props sit behind the head but ahead of the body
-  const back = drawArm(ctx, cx - 6 + pose.lean, shoulderY, pose.armL)
-  drawProp(ctx, back.hx, back.hy, pose)
-
-  drawHead(ctx, cx, gy, pose, kit)
-
-  // front arm on top
-  drawArm(ctx, cx + 6 + pose.lean, shoulderY, pose.armR)
-
-  // heat grime on the hoodie
   if (pose.dirt > 0) {
-    const a = pose.dirt > 1 ? 0.5 : 0.3
-    pxa(ctx, cx - 8, gy - 36, 5, 3, '#4a3520', a)
-    pxa(ctx, cx + 2, gy - 24, 6, 2, '#4a3520', a)
-    pxa(ctx, cx - 6, gy - 12, 4, 2, '#4a3520', a)
-    if (pose.dirt > 1) {
-      pxa(ctx, cx + 4, gy - 40, 4, 2, '#4a3520', a)
-      pxa(ctx, cx - 12, gy - 20, 3, 3, '#4a3520', a)
-    }
+    const a = pose.dirt > 1 ? 0.45 : 0.28
+    pxa(ctx, cx - 7, gy - 34, 4, 2, '#4a3520', a)
+    pxa(ctx, cx + 2, gy - 23, 5, 2, '#4a3520', a)
   }
 
-  // sleep marks
   if (pose.eyes === 'closed' && pose.sit > 0.5) {
     const zt = (t / 700) % 3
     for (let i = 0; i < 3; i++) {
       const k = (zt + i) % 3
-      const a = 1 - k / 3
-      const size = 2 + i
-      pxa(ctx, cx + 12 + k * 4, gy - 38 - k * 7, size, size, P.bone, a * 0.8)
+      pxa(ctx, cx + 12 + k * 4, gy - 38 - k * 7, 2 + i, 2 + i, P.bone, (1 - k / 3) * 0.8)
     }
   }
 }
