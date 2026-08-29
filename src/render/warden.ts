@@ -1,5 +1,5 @@
 import { P } from '../styles/palette'
-import { noise2, px, pxa, pxLine, type Ctx } from './draw'
+import { px, pxa, pxLine, type Ctx } from './draw'
 import type { ActivityKind, EquippedLook, Stats } from '../game/types'
 export const HERO_H = 60
 export const HERO_W = 36
@@ -72,139 +72,18 @@ export interface PoseInput {
   stats: Stats
 }
 
-export function poseFor({ activity, phase, t, stats }: PoseInput): Pose {
+export function poseFor({ stats }: PoseInput): Pose {
   const p = basePose()
 
-  const breathe = Math.sin(t / 620)
-  p.bob = breathe > 0.5 ? -1 : 0
-  p.capeSway = Math.sin(t / 900) * 1.5
-  // A sharp thesis glows. A cooked one sweats.
   p.aura = Math.max(0.08, stats.edge / 100)
   p.dirt = stats.heat > 82 ? 2 : stats.heat > 58 ? 1 : 0
 
-  // baseline demeanour from the stats
   if (stats.focus < 26) {
     p.eyes = 'tired'
-    p.headDrop = 2
-    p.bob = breathe > 0.5 ? 0 : 1
   }
   if (stats.heat > 74) {
     p.eyes = 'angry'
     p.mouth = 'flat'
-    p.headTilt = -1
-  }
-  if (stats.edge < 26) {
-    p.lean = -1
-  }
-  // blink
-  if (p.eyes === 'open' && (t / 1000) % 5.4 < 0.16) p.eyes = 'closed'
-
-  switch (activity) {
-    case 'pnl': {
-      // quick desk check: phone/tablet up, one calm glance at the numbers
-      const k = Math.sin(phase * Math.PI)
-      p.prop = 'slate'
-      p.armL = { x: -4 - k, y: 9 - k * 2 }
-      p.armR = { x: 7 + k, y: 13 - k }
-      p.headTilt = phase < 0.56 ? -1 : 0
-      p.headDrop = phase < 0.72 ? 1 : 0
-      p.eyes = phase > 0.34 && phase < 0.48 ? 'closed' : 'open'
-      p.mouth = 'flat'
-      p.flash = 0
-      p.aura = Math.min(1, p.aura + 0.16 * k)
-      break
-    }
-
-    case 'research': {
-      const scan = Math.sin(phase * Math.PI * 3)
-      p.prop = 'ledger'
-      p.armL = { x: -10, y: 12 }
-      p.armR = { x: 4, y: 6 + scan * 3 }
-      p.swordR = 62 * D
-      p.headDrop = 1 + (scan > 0 ? 1 : 0)
-      p.mouth = scan > 0.3 ? 'open' : 'flat'
-      p.eyes = 'open'
-      break
-    }
-
-    case 'recover': {
-      // shuffle over to the cot, fold up, snore
-      const walkIn = Math.min(1, phase / 0.14)
-      const walkOut = phase > 0.86 ? (phase - 0.86) / 0.14 : 0
-      const settle = Math.min(1, Math.max(0, (phase - 0.14) / 0.1))
-      const travel = -62
-      p.shift = travel * (walkIn - walkOut)
-      p.step = phase < 0.14 || phase > 0.86 ? Math.floor(t / 110) % 2 : 0
-      p.sit = settle - walkOut
-      p.eyes = 'closed'
-      p.headDrop = 3 * p.sit
-      p.headTilt = -2 * p.sit
-      p.armL = { x: -7, y: 16 }
-      p.armR = { x: 7, y: 16 }
-      p.swordLen = 0
-      p.bob = Math.sin(t / 700) > 0 ? 0 : 1
-      p.aura = Math.max(0.1, p.aura * 0.55)
-      break
-    }
-
-    case 'hedge': {
-      const work = Math.sin(phase * Math.PI * 7)
-      p.prop = 'slate'
-      p.armL = { x: -4 + work * 4, y: 8 + Math.abs(work) * 2 }
-      p.armR = { x: 9, y: 15 }
-      p.swordLen = 0
-      p.headDrop = 1
-      p.eyes = 'closed'
-      p.mouth = 'flat'
-      break
-    }
-
-    case 'scan': {
-      const hop = Math.sin(phase * Math.PI * 3)
-      p.bob = -Math.round(Math.abs(hop) * 3)
-      p.armL = { x: -8, y: 8 }
-      p.armR = { x: 8, y: 8 }
-      p.mouth = 'grin'
-      p.eyes = 'open'
-      p.flash = Math.floor(phase * 8) % 2
-      break
-    }
-
-    case 'bet': {
-      // wind up, then commit
-      const k = phase < 0.4 ? -phase / 0.4 : (phase - 0.4) / 0.6
-      p.lean = Math.round(k * 4)
-      p.shift = Math.round(k * 3)
-      p.prop = 'slate'
-      p.armR = { x: 7 + k * 5, y: 12 - k * 3 }
-      p.armL = { x: -7, y: 14 }
-      p.eyes = 'angry'
-      p.mouth = 'open'
-      p.flash = k > 0.6 ? 1 : 0
-      break
-    }
-
-    case 'refuse': {
-      const shake = Math.sin(phase * Math.PI * 6)
-      p.shift = Math.round(shake * 2)
-      p.headTilt = Math.round(shake * 2)
-      p.eyes = 'angry'
-      p.mouth = 'flat'
-      p.armL = { x: -11, y: 10 }
-      p.armR = { x: 11, y: 10 }
-      break
-    }
-
-    case 'idle':
-    default: {
-      // slow idle sway; occasionally shifts weight
-      const cycle = (t / 3400) % 1
-      if (cycle > 0.82) {
-        p.lean = 1
-        p.armR = { x: 9, y: 13 }
-      }
-      break
-    }
   }
 
   return p
@@ -379,7 +258,7 @@ function drawArm(
   return { hx, hy }
 }
 
-function drawHead(ctx: Ctx, cx: number, groundY: number, pose: Pose, kit: Kit, t: number): void {
+function drawHead(ctx: Ctx, cx: number, groundY: number, pose: Pose, kit: Kit): void {
   const drop = Math.round(pose.sit * 12) + pose.headDrop
   const top = groundY - 59 + pose.bob + drop
   const hx = cx + pose.headTilt + Math.round(pose.lean * 0.5)
@@ -397,11 +276,10 @@ function drawHead(ctx: Ctx, cx: number, groundY: number, pose: Pose, kit: Kit, t
   px(ctx, hx - 7, top + 1, 11, 1, hairLit)
   px(ctx, hx - 9, top + 4, 3, 5, hair)
   px(ctx, hx + 6, top + 4, 3, 5, hair)
-  for (let i = 0; i < 4; i++) {
-    const sx = hx - 6 + i * 4
-    const h = 2 + Math.floor(noise2(i, top + t * 0.001) * 3)
-    px(ctx, sx, top - h + 3, 2, h, i % 2 ? hair : hairLit)
-  }
+  px(ctx, hx - 7, top - 1, 2, 4, hairLit)
+  px(ctx, hx - 3, top - 2, 2, 5, hair)
+  px(ctx, hx + 1, top - 1, 2, 4, hairLit)
+  px(ctx, hx + 5, top, 2, 3, hair)
 
   drawHeadwear(ctx, hx, top, kit)
   drawFace(ctx, hx, top, pose)
@@ -502,12 +380,12 @@ function drawProp(ctx: Ctx, hx: number, hy: number, pose: Pose, kit: Kit): void 
   }
 }
 
-function drawAura(ctx: Ctx, cx: number, groundY: number, pose: Pose, t: number): void {
+function drawAura(ctx: Ctx, cx: number, groundY: number, pose: Pose): void {
   const level = pose.aura
   if (level <= 0.08) return
   const count = 2 + Math.round(level * 3)
   for (let i = 0; i < count; i++) {
-    const ph = t / 950 + (i * Math.PI * 2) / count
+    const ph = (i * Math.PI * 2) / count
     const x = cx + Math.cos(ph) * (14 + i)
     const y = groundY - 31 + Math.sin(ph * 1.3) * 13
     pxa(ctx, x, y, 2, 2, P.spiritLit, 0.18 * level)
@@ -528,13 +406,13 @@ export function drawWarden(
   const gy = Math.round(groundY + (pose.sit > 0.5 ? 2 : 0))
   const shoulderY = bodyTop(gy, pose) + 4
 
-  drawAura(ctx, cx, gy, pose, t)
+  drawAura(ctx, cx, gy, pose)
   drawLegs(ctx, cx, gy, pose, kit)
   drawTorso(ctx, cx, gy, pose, kit)
 
   const back = drawArm(ctx, cx - 8 + pose.lean, shoulderY, pose.armL, kit)
   drawProp(ctx, back.hx, back.hy, pose, kit)
-  drawHead(ctx, cx, gy, pose, kit, t)
+  drawHead(ctx, cx, gy, pose, kit)
   drawArm(ctx, cx + 8 + pose.lean, shoulderY, pose.armR, kit)
 
   if (pose.dirt > 0) {
