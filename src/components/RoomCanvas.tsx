@@ -6,11 +6,29 @@ import { getState } from '../game/store'
 import { ParticleSystem } from '../render/particles'
 import { HOTSPOTS, SCENE, drawRoom, drawRoomOverlay, hitTest } from '../render/room'
 import { drawWarden, poseFor } from '../render/warden'
+import { px, pxa } from '../render/draw'
 import { clamp } from '../game/util'
 import { levelFromXp, progressionTierForLevel } from '../game/config'
 /** Where particles appear when an fx event does not name a position. */
 const CHEST_X = SCENE.heroX
 const CHEST_Y = SCENE.heroY - 34
+
+function drawBreakStatus(ctx: CanvasRenderingContext2D, phase: number): void {
+  const fade = Math.min(1, Math.sin(clamp(phase * 2.6, 0, 1) * Math.PI * 0.5))
+  pxa(ctx, 0, 0, SCENE.w, SCENE.h, '#02050a', 0.22 * fade)
+  px(ctx, 49, 18, 94, 18, '#070a0f')
+  px(ctx, 51, 20, 90, 14, '#101820')
+  px(ctx, 51, 20, 90, 2, '#263747')
+  px(ctx, 51, 32, 90, 2, '#02050a')
+  ctx.save()
+  ctx.globalAlpha *= fade
+  ctx.fillStyle = '#e8dfc8'
+  ctx.font = '8px monospace'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText('TAKING BREAK', SCENE.w / 2, 28)
+  ctx.restore()
+}
 
 export function RoomCanvas() {
   const wrapRef = useRef<HTMLDivElement>(null)
@@ -114,6 +132,7 @@ let raf = 0
       particles.draw(ctx)
 
       drawRoomOverlay(ctx, opts)
+      if (kind === 'recover') drawBreakStatus(ctx, phase)
 
       // screen shake, applied to the wrapper so the canvas stays pixel-aligned
       if (shake > 0.01) {

@@ -72,7 +72,7 @@ export interface PoseInput {
   stats: Stats
 }
 
-export function poseFor({ stats }: PoseInput): Pose {
+export function poseFor({ activity, phase, stats }: PoseInput): Pose {
   const p = basePose()
 
   p.aura = Math.max(0.08, stats.edge / 100)
@@ -84,6 +84,19 @@ export function poseFor({ stats }: PoseInput): Pose {
   if (stats.heat > 74) {
     p.eyes = 'angry'
     p.mouth = 'flat'
+  }
+
+  if (activity === 'recover') {
+    const restIn = Math.min(1, phase / 0.18)
+    const restOut = phase > 0.82 ? (phase - 0.82) / 0.18 : 0
+    const rest = Math.max(0, restIn - restOut)
+    p.sit = rest
+    p.eyes = 'closed'
+    p.mouth = 'flat'
+    p.headDrop = Math.round(rest * 2)
+    p.armL = { x: -6, y: 15 }
+    p.armR = { x: 6, y: 15 }
+    p.aura = Math.max(0.08, p.aura * 0.45)
   }
 
   return p
