@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { CurrencyBar } from '../components/CurrencyBar'
 import { FloatingTextLayer } from '../components/FloatingTextLayer'
 import { PixelBar } from '../components/PixelBar'
@@ -81,7 +81,7 @@ export function RoomScreen() {
   const [tutorialStep, setTutorialStep] = useState(0)
   const [pickedClass, setPickedClass] = useState<TraderClassId>('crypto')
   const [nameDraft, setNameDraft] = useState(s.name)
-  const [dailyOpen, setDailyOpen] = useState(true)
+  const [dailyOpen, setDailyOpen] = useState(false)
   const now = Date.now()
   const day = Math.max(1, Math.floor((now - s.firstVisit) / 86_400_000) + 1)
   const stashCount = Object.values(s.stash).reduce((a, b) => a + b, 0)
@@ -97,7 +97,11 @@ export function RoomScreen() {
   const tutorialOpen = !s.onboarded
   const tutorial = TUTORIAL_STEPS[Math.min(tutorialStep, TUTORIAL_STEPS.length - 1)]!
   const daily = nextDailyLogin(s, now)
-  const dailyVisible = s.onboarded && dailyOpen && daily.claimable
+  const dailyVisible = s.onboarded && dailyOpen
+
+  useEffect(() => {
+    if (s.onboarded && daily.claimable) setDailyOpen(true)
+  }, [s.onboarded, daily.claimable, daily.today])
 
   const claimDaily = () => {
     claimDailyLoginReward()
@@ -316,10 +320,7 @@ export function RoomScreen() {
           <button
             type="button"
             className={`navbtn navbtn--daily ${daily.claimable ? 'is-ready' : ''}`}
-            onClick={() => {
-              if (daily.claimable) claimDaily()
-              else setDailyOpen(true)
-            }}
+            onClick={() => setDailyOpen(true)}
           >
             <PixelIcon name="star" size={14} />
             <span>Daily</span>
@@ -344,14 +345,16 @@ export function RoomScreen() {
               </div>
               <div>
                 <p className="t-label t-dim">Daily login streak</p>
-                <h2>Day {daily.streak}</h2>
+                <h2>{daily.claimable ? `Day ${daily.streak}` : 'Claimed today'}</h2>
               </div>
             </div>
             <p className="daily-login__copy">
-              Show up every day. Miss a day and the streak starts over.
+              {daily.claimable
+                ? 'Show up every day. Miss a day and the streak starts over.'
+                : `Current streak: ${s.dailyLogin.streak}. Come back tomorrow for the next desk bonus.`}
             </p>
             <div className="daily-login__reward">
-              <span>Today's desk bonus</span>
+              <span>{daily.claimable ? "Today's desk bonus" : 'Last claimed bonus'}</span>
               <b>{rewardLabel(daily.reward)}</b>
             </div>
             <div className="daily-login__track" aria-label="Weekly streak progress">
@@ -367,9 +370,16 @@ export function RoomScreen() {
             </div>
             <div className="daily-login__actions">
               <button type="button" className="daily-login__skip" onClick={() => setDailyOpen(false)}>
-                Later
+                {daily.claimable ? 'Later' : 'Close'}
               </button>
-              <PixelButton label="Claim" icon="coin" variant="gold" size="sm" onClick={claimDaily} />
+              <PixelButton
+                label={daily.claimable ? 'Claim' : 'Claimed'}
+                icon={daily.claimable ? 'coin' : 'check'}
+                variant={daily.claimable ? 'gold' : 'ghost'}
+                size="sm"
+                disabled={!daily.claimable}
+                onClick={claimDaily}
+              />
             </div>
           </PixelPanel>
         </div>
