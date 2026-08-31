@@ -77,7 +77,13 @@ export default async function handler(req: Req, res: Res): Promise<void> {
 
   try {
     // First writer processes the grant; a replayed hash is a no-op (idempotent).
-    await claimOnce(keys.basePayment(txHash), record)
+    const fresh = await claimOnce(keys.basePayment(txHash), record)
+    if (!fresh) {
+      const owned = await listEntitlements(keys.baseEntitlements(payer))
+      res.status(409).json({ verified: false, error: 'This Base transaction was already used.', owned })
+      return
+    }
+
     await grantEntitlement(keys.baseEntitlements(payer), product.id)
     const owned = await listEntitlements(keys.baseEntitlements(payer))
     res.status(200).json({ verified: true, owned })
