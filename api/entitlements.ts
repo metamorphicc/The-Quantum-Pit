@@ -4,8 +4,6 @@ import { botToken } from './_lib/env'
 import { keys, listEntitlements, storeConfigured } from './_lib/store'
 import { validateInitData } from './_lib/telegram-auth'
 
-const ADDRESS_RE = /^0x[a-fA-F0-9]{40}$/
-
 export default async function handler(req: Req, res: Res): Promise<void> {
   if (req.method !== 'POST') {
     res.status(200).json({ ok: true, what: 'Quantum Pit entitlements', configured: storeConfigured() })
@@ -33,13 +31,9 @@ export default async function handler(req: Req, res: Res): Promise<void> {
     }
 
     if (loginMethod === 'base') {
-      const wallet = asString(body.walletAddress)
-      if (!ADDRESS_RE.test(wallet)) {
-        res.status(200).json({ owned: [], configured: true })
-        return
-      }
-      const owned = await listEntitlements(keys.baseEntitlements(wallet))
-      res.status(200).json({ owned, configured: true })
+      // Do not restore Base entitlements from a bare walletAddress. Anyone can
+      // type an address; a future SIWE/personal_sign proof should unlock this.
+      res.status(200).json({ owned: [], configured: true, authRequired: true })
       return
     }
 

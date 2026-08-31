@@ -185,7 +185,11 @@ export default async function handler(req: Req, res: Res): Promise<void> {
   }
 
   const secret = webhookSecret()
-  if (secret && header(req, 'x-telegram-bot-api-secret-token') !== secret) {
+  if (!secret) {
+    res.status(500).end()
+    return
+  }
+  if (header(req, 'x-telegram-bot-api-secret-token') !== secret) {
     res.status(401).end()
     return
   }
