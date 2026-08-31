@@ -128,6 +128,7 @@ function payloadProductId(raw: unknown): string {
 
 /** A pre-checkout is approved only if the item and Star amount still match. */
 function validatePreCheckout(pcq: Record<string, any>): boolean {
+  if (!storeConfigured()) return false
   if (pcq?.currency !== 'XTR') return false
   const product = getProduct(payloadProductId(pcq?.invoice_payload))
   if (!product) return false
@@ -146,7 +147,7 @@ async function grantFromPayment(message: Record<string, any>): Promise<void> {
   const product = getProduct(payloadProductId(sp?.invoice_payload))
   const payerId = message?.from?.id
   if (!chargeId || !product || typeof payerId !== 'number') return
-  if (!storeConfigured()) return
+  if (!storeConfigured()) throw new Error('Payment store is not configured.')
 
   const uid = String(payerId)
   const record = JSON.stringify({

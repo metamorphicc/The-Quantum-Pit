@@ -1,6 +1,7 @@
 import type { Req, Res } from './_lib/http'
 import { asString, parseBody } from './_lib/http'
 import { botToken } from './_lib/env'
+import { enforceRateLimit } from './_lib/rate-limit'
 import { keys, listEntitlements, storeConfigured } from './_lib/store'
 import { validateInitData } from './_lib/telegram-auth'
 
@@ -14,6 +15,7 @@ export default async function handler(req: Req, res: Res): Promise<void> {
     res.status(200).json({ owned: [], configured: false })
     return
   }
+  if (!(await enforceRateLimit(req, res, 'entitlements', 60, 60))) return
 
   const body = parseBody(req.body)
   const loginMethod = asString(body.loginMethod)

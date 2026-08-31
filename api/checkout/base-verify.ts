@@ -64,8 +64,13 @@ export default async function handler(req: Req, res: Res): Promise<void> {
     return
   }
 
-  // Entitle the address that actually paid (from the Transfer log), not the
-  // one the client claimed. They should match; the onchain value wins.
+  if (result.from.toLowerCase() !== walletAddress.toLowerCase()) {
+    res.status(401).json({ verified: false, error: 'Payment sender does not match this wallet.' })
+    return
+  }
+
+  // Entitle the address that actually paid, after proving it is this session's
+  // wallet. That keeps the server and local cosmetic unlock in the same lane.
   const payer = result.from
   const record = JSON.stringify({
     rail: 'base',
