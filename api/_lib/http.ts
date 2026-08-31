@@ -32,3 +32,30 @@ export function header(req: Req, name: string): string {
 export function asString(value: unknown): string {
   return typeof value === 'string' ? value : ''
 }
+
+export function rejectUnsupportedMethod(req: Req, res: Res): boolean {
+  if (req.method === 'GET' || req.method === 'POST') return false
+  res.status(405).json({ error: 'Method not allowed.' })
+  return true
+}
+
+export function rejectUnsafeJson(req: Req, res: Res, maxBytes = 4096): boolean {
+  const rawLength = Number(header(req, 'content-length') || 0)
+  if (Number.isFinite(rawLength) && rawLength > maxBytes) {
+    res.status(413).json({ error: 'Request body is too large.' })
+    return true
+  }
+
+  const contentType = header(req, 'content-type').toLowerCase()
+  if (contentType && !contentType.includes('application/json')) {
+    res.status(415).json({ error: 'Expected application/json.' })
+    return true
+  }
+
+  if (typeof req.body === 'string' && req.body.length > maxBytes) {
+    res.status(413).json({ error: 'Request body is too large.' })
+    return true
+  }
+
+  return false
+}

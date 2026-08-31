@@ -2,6 +2,7 @@ import { botToken, webhookSecret } from './_lib/env'
 import { getProduct } from './_lib/products'
 import { enforceRateLimit } from './_lib/rate-limit'
 import { claimOnce, grantEntitlement, keys, storeConfigured } from './_lib/store'
+import { rejectUnsafeJson, rejectUnsupportedMethod } from './_lib/http'
 
 /** Minimal shape of the Vercel Node request/response - avoids a dependency. */
 interface Req {
@@ -175,7 +176,8 @@ async function grantFromPayment(message: Record<string, any>): Promise<void> {
 }
 export default async function handler(req: Req, res: Res): Promise<void> {
   // A GET is handy for eyeballing that the function deployed at all.
-  if (req.method !== 'POST') {
+  if (rejectUnsupportedMethod(req, res)) return
+  if (req.method === 'GET') {
     res.status(200).json({
       ok: true,
       what: 'Quantum Pit bot webhook',
@@ -185,6 +187,7 @@ export default async function handler(req: Req, res: Res): Promise<void> {
     })
     return
   }
+  if (rejectUnsafeJson(req, res, 32_768)) return
 
   const secret = webhookSecret()
   if (!secret) {

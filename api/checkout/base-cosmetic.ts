@@ -1,5 +1,5 @@
 import type { Req, Res } from '../_lib/http'
-import { parseBody } from '../_lib/http'
+import { parseBody, rejectUnsafeJson, rejectUnsupportedMethod } from '../_lib/http'
 import { treasuryAddress } from '../_lib/env'
 import { getProduct } from '../_lib/products'
 import { BASE_USDC } from '../_lib/base-rpc'
@@ -19,7 +19,8 @@ function addressArg(address: string): string {
 export default async function handler(req: Req, res: Res): Promise<void> {
   const treasury = treasuryAddress()
 
-  if (req.method !== 'POST') {
+  if (rejectUnsupportedMethod(req, res)) return
+  if (req.method === 'GET') {
     res.status(200).json({
       ok: true,
       what: 'Quantum Pit Base cosmetic checkout',
@@ -28,6 +29,7 @@ export default async function handler(req: Req, res: Res): Promise<void> {
     })
     return
   }
+  if (rejectUnsafeJson(req, res)) return
 
   if (!treasury) {
     res.status(500).json({ error: 'Treasury address is not configured.' })
