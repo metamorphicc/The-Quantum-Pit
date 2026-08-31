@@ -52,6 +52,16 @@ export async function listEntitlements(entitlementKey: string): Promise<string[]
   const result = await redis(['SMEMBERS', entitlementKey])
   return Array.isArray(result) ? result.filter((x): x is string => typeof x === 'string') : []
 }
+
+/** Increments a short-lived counter. Used for coarse abuse throttling. */
+export async function incrementExpiring(key: string, windowSec: number): Promise<number> {
+  const result = await redis(['INCR', key])
+  const count = typeof result === 'number' ? result : Number(result)
+  if (!Number.isFinite(count)) throw new Error('Store counter failed.')
+  if (count === 1) await redis(['EXPIRE', key, windowSec])
+  return count
+}
+
 export const keys = {
   tgPayment: (chargeId: string): string => `pay:tg:${chargeId}`,
   basePayment: (txHash: string): string => `pay:base:${txHash.toLowerCase()}`,

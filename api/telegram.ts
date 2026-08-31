@@ -1,5 +1,6 @@
 import { botToken, webhookSecret } from './_lib/env'
 import { getProduct } from './_lib/products'
+import { enforceRateLimit } from './_lib/rate-limit'
 import { claimOnce, grantEntitlement, keys, storeConfigured } from './_lib/store'
 
 /** Minimal shape of the Vercel Node request/response - avoids a dependency. */
@@ -193,6 +194,7 @@ export default async function handler(req: Req, res: Res): Promise<void> {
     res.status(401).end()
     return
   }
+  if (!(await enforceRateLimit(req, res, 'telegram-webhook', 240, 60))) return
 
   const update = parseBody(req.body)
 

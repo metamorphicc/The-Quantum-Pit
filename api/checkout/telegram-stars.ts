@@ -4,6 +4,7 @@ import { botToken } from '../_lib/env'
 import { getProduct } from '../_lib/products'
 import { storeConfigured } from '../_lib/store'
 import { validateInitData } from '../_lib/telegram-auth'
+import { enforceRateLimit } from '../_lib/rate-limit'
 
 async function callBot(
   token: string,
@@ -50,6 +51,7 @@ export default async function handler(req: Req, res: Res): Promise<void> {
     res.status(503).json({ error: 'Payments are temporarily unavailable.' })
     return
   }
+  if (!(await enforceRateLimit(req, res, 'telegram-stars', 30, 60))) return
 
   const body = parseBody(req.body)
   const product = getProduct(body.productId)

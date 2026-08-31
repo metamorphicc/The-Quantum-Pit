@@ -3,6 +3,7 @@ import { parseBody } from '../_lib/http'
 import { treasuryAddress } from '../_lib/env'
 import { getProduct } from '../_lib/products'
 import { BASE_USDC } from '../_lib/base-rpc'
+import { enforceRateLimit } from '../_lib/rate-limit'
 
 const TRANSFER_SELECTOR = 'a9059cbb'
 const BASE_CHAIN_ID = '0x2105'
@@ -32,6 +33,7 @@ export default async function handler(req: Req, res: Res): Promise<void> {
     res.status(500).json({ error: 'Treasury address is not configured.' })
     return
   }
+  if (!(await enforceRateLimit(req, res, 'base-cosmetic', 40, 60))) return
 
   const body = parseBody(req.body)
   const product = getProduct(body.productId)

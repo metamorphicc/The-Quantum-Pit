@@ -4,6 +4,7 @@ import { baseRpcUrl, treasuryAddress } from '../_lib/env'
 import { getProduct } from '../_lib/products'
 import { BASE_USDC, verifyErc20Transfer } from '../_lib/base-rpc'
 import { claimOnce, grantEntitlement, keys, listEntitlements, storeConfigured } from '../_lib/store'
+import { enforceRateLimit } from '../_lib/rate-limit'
 
 const ADDRESS_RE = /^0x[a-fA-F0-9]{40}$/
 const TXHASH_RE = /^0x[a-fA-F0-9]{64}$/
@@ -23,6 +24,7 @@ export default async function handler(req: Req, res: Res): Promise<void> {
     res.status(500).json({ error: 'Treasury address is not configured.' })
     return
   }
+  if (!(await enforceRateLimit(req, res, 'base-verify', 30, 60))) return
 
   const body = parseBody(req.body)
   const product = getProduct(body.productId)

@@ -1,20 +1,3 @@
-/* ==========================================================================
-   Generates public/start-banner.png — the picture the bot sends with /start.
-
-     node tools/make-banner.mjs        (or: npm run banner)
-
-   It draws with the game's own render code: the warden sprite and the palette
-   are imported straight from src/, bundled on the fly with the esbuild that
-   already ships inside Vite. No new dependencies, no canvas library — the
-   framebuffer, the alpha blending and the PNG encoder are all in this file,
-   because everything the renderers touch is fillRect and globalAlpha.
-
-   Output is 160×90 pixels upscaled ×4 to 640×360 with nearest-neighbour, so
-   every pixel stays a perfect 4×4 square.
-
-   You do NOT need this script to change the picture — see the README. Drop any
-   image at public/start-banner.png, or point START_IMAGE_URL at a URL.
-   ========================================================================== */
 
 import { deflateSync } from 'node:zlib'
 import { writeFileSync, mkdirSync } from 'node:fs'
@@ -29,9 +12,6 @@ const H = 90
 const SCALE = 4
 const OUT = resolve(ROOT, 'public/start-banner.png')
 
-/* ==========================================================================
-   A 2D context just big enough for the game's renderers.
-   ========================================================================== */
 
 class Surface {
   constructor(w, h, fill = '#000000') {
