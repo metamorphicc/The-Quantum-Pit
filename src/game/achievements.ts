@@ -21,6 +21,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     desc: 'Entered the room with a Base Account wallet identity.',
     icon: 'coin',
     rarity: 'common',
+    onchainClaimable: true,
   },
   {
     id: 'first-scan',

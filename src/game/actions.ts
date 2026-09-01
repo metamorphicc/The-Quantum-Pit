@@ -1041,6 +1041,13 @@ export async function claimAchievement(id: AchievementId): Promise<ActionResult>
   const record = s.achievements[id]
   if (!record) return refusal('Unlock it in-game first.')
   if (record.claimStatus === 'claimed') return refusal('Already claimed.')
+  if (!def.onchainClaimable) {
+    const msg = 'This badge stays in-game until server-verified achievement claims exist.'
+    toast('In-game badge', 'plain', msg)
+    play('deny')
+    notify('warning')
+    return refusal(msg)
+  }
   if (s.loginMethod !== 'base' || !s.walletAddress) {
     const msg = 'Connect Base Account before claiming onchain badges.'
     toast('Base Account needed', 'bad', msg)

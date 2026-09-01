@@ -92,6 +92,7 @@ export interface AchievementDef {
   desc: string
   icon: IconName
   rarity: 'common' | 'rare' | 'epic'
+  onchainClaimable?: boolean
 }
 
 export interface AchievementRecord {

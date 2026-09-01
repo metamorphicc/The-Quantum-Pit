@@ -49,7 +49,7 @@ export function ProfileScreen() {
   // plain browser (or a client that hides the user), whatever the SDK claims.
   const linked = tgUserId() !== null
   const unlockedBadges = ACHIEVEMENTS.filter((badge) => s.achievements[badge.id]).length
-  const claimReady = s.loginMethod === 'base' && Boolean(s.walletAddress)
+  const baseClaimReady = s.loginMethod === 'base' && Boolean(s.walletAddress) && badgeClaimConfigured()
 
   const telegramKeeper = (() => {
     const first = tgUserName()
@@ -254,6 +254,18 @@ export function ProfileScreen() {
               const unlocked = Boolean(record)
               const claimed = record?.claimStatus === 'claimed'
               const busy = claiming === badge.id
+              const canClaimOnchain = Boolean(badge.onchainClaimable && baseClaimReady)
+              const status = claimed
+                ? 'claimed'
+                : badge.onchainClaimable
+                  ? unlocked
+                    ? badgeClaimConfigured()
+                      ? 'free claim'
+                      : 'setup needed'
+                    : 'locked'
+                  : unlocked
+                    ? 'in-game only'
+                    : 'locked'
               return (
                 <div
                   key={badge.id}
@@ -266,16 +278,15 @@ export function ProfileScreen() {
                     <b>{badge.name}</b>
                     <span>{badge.desc}</span>
                     <small>
-                      ERC-1155 #{badge.tokenId} -{' '}
-                      {claimed ? 'claimed' : unlocked ? 'free claim' : 'locked'}
+                      ERC-1155 #{badge.tokenId} - {status}
                     </small>
                   </div>
                   <PixelButton
-                    label={claimed ? 'Claimed' : busy ? 'Claiming' : 'Claim'}
+                    label={claimed ? 'Claimed' : busy ? 'Claiming' : badge.onchainClaimable ? 'Claim' : 'Game'}
                     icon={claimed ? 'check' : 'coin'}
-                    variant={claimed ? 'ghost' : unlocked && claimReady ? 'teal' : 'ghost'}
+                    variant={claimed ? 'ghost' : unlocked && canClaimOnchain ? 'teal' : 'ghost'}
                     size="sm"
-                    disabled={!unlocked || claimed || busy}
+                    disabled={!unlocked || claimed || busy || !canClaimOnchain}
                     onClick={() => void claimBadge(badge.id)}
                   />
                 </div>
@@ -283,10 +294,7 @@ export function ProfileScreen() {
             })}
           </div>
           <p className="t-label t-dim">
-            Badges are free mints. The mint contract/signer still needs deployment
-            {badgeClaimConfigured()
-              ? '; Base Account can send claims now.'
-              : ' before claims can create real NFTs.'}
+            Only server-verifiable badges can mint onchain. Local progress badges stay in-game for now.
           </p>
         </PixelPanel>
 
