@@ -1,5 +1,6 @@
 import type { Req, Res } from './_lib/http'
 import { asString, parseBody, rejectUnsafeJson, rejectUnsupportedMethod } from './_lib/http'
+import { verifyBaseEntitlementProof } from './_lib/base-auth'
 import { botToken } from './_lib/env'
 import { enforceRateLimit } from './_lib/rate-limit'
 import { keys, listEntitlements, storeConfigured } from './_lib/store'
@@ -35,9 +36,17 @@ export default async function handler(req: Req, res: Res): Promise<void> {
     }
 
     if (loginMethod === 'base') {
-      // Do not restore Base entitlements from a bare walletAddress. Anyone can
-      // type an address; a future SIWE/personal_sign proof should unlock this.
-      res.status(200).json({ owned: [], configured: true, authRequired: true })
+      const walletAddress = asString(body.walletAddress)
+      const message = asString(body.message)
+      const signature = asString(body.signature)
+      const verified = await verifyBaseEntitlementProof({ walletAddress, message, signature })
+      if (!verified) {
+        res.status(200).json({ owned: [], configured: true, authRequired: true })
+        return
+      }
+
+      const owned = await listEntitlements(keys.baseEntitlements(walletAddress))
+      res.status(200).json({ owned, configured: true })
       return
     }
 

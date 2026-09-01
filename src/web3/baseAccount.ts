@@ -53,6 +53,31 @@ export async function connectBaseAccount(): Promise<BaseAccountConnection> {
   return { address: accounts[0], chainId }
 }
 
+export function baseEntitlementMessage(walletAddress: string, issuedAt: number): string {
+  return [
+    'Quantum Pit Base entitlement restore',
+    `Wallet: ${walletAddress.toLowerCase()}`,
+    `Issued At: ${issuedAt}`,
+    'Purpose: restore-cosmetics',
+  ].join('\n')
+}
+
+export async function signBaseEntitlementProof(
+  walletAddress: string,
+): Promise<{ message: string; signature: string } | null> {
+  const eth = baseProvider()
+  if (!eth) return null
+
+  const issuedAt = Date.now()
+  const message = baseEntitlementMessage(walletAddress, issuedAt)
+  const signature = await eth.request({
+    method: 'personal_sign',
+    params: [message, walletAddress],
+  })
+
+  return typeof signature === 'string' ? { message, signature } : null
+}
+
 export async function ensureBaseChain(): Promise<void> {
   const eth = baseProvider()
   if (!eth) throw new Error('No wallet found. Open in Base App or connect Base Account first.')

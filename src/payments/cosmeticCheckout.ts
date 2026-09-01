@@ -5,7 +5,7 @@ import type {
   LoginMethod,
 } from '../game/types'
 import { openTelegramInvoice, tgInitData } from '../telegram/telegram'
-import { baseProvider, ensureBaseChain } from '../web3/baseAccount'
+import { baseProvider, ensureBaseChain, signBaseEntitlementProof } from '../web3/baseAccount'
 type Env = Record<string, string | undefined>
 
 interface TxPayload {
@@ -97,11 +97,19 @@ async function postJson<T>(url: string, body: string): Promise<T> {
 export async function fetchEntitlements(state: GameState): Promise<string[]> {
   if (state.loginMethod !== 'telegram' && state.loginMethod !== 'base') return []
   const endpoint = env().VITE_QP_ENTITLEMENTS_URL ?? '/api/entitlements'
+  let body = identityBody(state)
+  if (state.loginMethod === 'base') {
+    if (!state.walletAddress) return []
+    const proof = await signBaseEntitlementProof(state.walletAddress)
+    if (!proof) return []
+    body = { ...body, ...proof }
+  }
+
   try {
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify(identityBody(state)),
+      body: JSON.stringify(body),
     })
     if (!response.ok) return []
     const data = (await response.json()) as EntitlementsResponse
