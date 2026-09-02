@@ -12,7 +12,7 @@ const TXHASH_RE = /^0x[a-fA-F0-9]{64}$/
 export default async function handler(req: Req, res: Res): Promise<void> {
   if (rejectUnsupportedMethod(req, res)) return
   if (req.method === 'GET') {
-    res.status(200).json({ ok: true, what: 'Quantum Pit Base verification', configured: storeConfigured() })
+    res.status(200).json({ ok: true })
     return
   }
   if (rejectUnsafeJson(req, res)) return

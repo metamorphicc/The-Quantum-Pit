@@ -178,13 +178,7 @@ export default async function handler(req: Req, res: Res): Promise<void> {
   // A GET is handy for eyeballing that the function deployed at all.
   if (rejectUnsupportedMethod(req, res)) return
   if (req.method === 'GET') {
-    res.status(200).json({
-      ok: true,
-      what: 'Quantum Pit bot webhook',
-      configured: Boolean(botToken()),
-      payments: storeConfigured(),
-      app: appUrl() || null,
-    })
+    res.status(200).json({ ok: true })
     return
   }
   if (rejectUnsafeJson(req, res, 32_768)) return
