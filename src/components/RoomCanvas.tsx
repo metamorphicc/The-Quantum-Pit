@@ -51,9 +51,9 @@ const resize = () => {
       const w = wrap.clientWidth
       const h = wrap.clientHeight
       if (!w || !h) return
-      const byWidth = Math.floor(w / SCENE.w)
-      // never smaller than 2x - we crop the ceiling instead of shrinking him
-      const scale = Math.max(2, Math.min(byWidth, Math.ceil(h / SCENE.h) + 1))
+      // Fill the stage horizontally; otherwise the centered 192px scene leaves
+      // empty strips on wider Telegram/mobile widths.
+      const scale = Math.max(2, w / SCENE.w)
       scaleRef.current = scale
       canvas.style.width = `${SCENE.w * scale}px`
       canvas.style.height = `${SCENE.h * scale}px`
