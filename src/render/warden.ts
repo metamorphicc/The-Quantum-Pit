@@ -90,12 +90,12 @@ export function poseFor({ activity, phase, stats }: PoseInput): Pose {
     const restIn = Math.min(1, phase / 0.18)
     const restOut = phase > 0.82 ? (phase - 0.82) / 0.18 : 0
     const rest = Math.max(0, restIn - restOut)
-    p.sit = rest
     p.eyes = 'closed'
     p.mouth = 'flat'
     p.headDrop = Math.round(rest * 2)
-    p.armL = { x: -6, y: 15 }
-    p.armR = { x: 6, y: 15 }
+    p.headTilt = -Math.round(rest)
+    p.armL = { x: -7, y: 16 }
+    p.armR = { x: 7, y: 16 }
     p.aura = Math.max(0.08, p.aura * 0.45)
   }
 
@@ -496,7 +496,7 @@ export function drawWarden(
     pxa(ctx, cx + 2, gy - 23, 5, 2, '#4a3520', a)
   }
 
-  if (pose.eyes === 'closed' && pose.sit > 0.5) {
+  if (pose.eyes === 'closed') {
     const zt = (t / 700) % 3
     for (let i = 0; i < 3; i++) {
       const k = (zt + i) % 3
