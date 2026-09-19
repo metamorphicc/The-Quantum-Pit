@@ -55,57 +55,70 @@ const STREET_PEOPLE = [
 function drawStreetStatic(ctx: Ctx, grime: number, cosmetics: ActiveCosmetics): void {
   px(ctx, 0, 0, SCENE.w, SCENE.h, '#05080d')
 
-  for (let y = 0; y < VOID_H + 96; y += 8) {
-    px(ctx, 0, y, R.w, 7, y < 48 ? '#07101b' : '#0a1119')
-    px(ctx, 0, y + 7, R.w, 1, '#030509')
+  for (let y = 0; y < VOID_H + 130; y += 6) {
+    const tone = y < 58 ? '#07101a' : y < VOID_H + 80 ? '#0a121b' : '#0c151f'
+    px(ctx, 0, y, R.w, 5, tone)
+    px(ctx, 0, y + 5, R.w, 1, '#030509')
   }
 
-  for (let i = 0; i < 12; i++) {
-    const bw = 10 + Math.floor(noise2(i, 11) * 13)
-    const bh = 38 + Math.floor(noise2(i, 18) * 54)
-    const bx = -6 + i * 17
-    const by = VOID_H + 118 - bh
-    px(ctx, bx, by, bw, bh, noise2(i, 24) > 0.5 ? '#0d1722' : '#0a141e')
-    px(ctx, bx, by, bw, 1, '#172431')
-    for (let wy = by + 6; wy < VOID_H + 112; wy += 9) {
-      if (noise2(i * 9, wy) > 0.55) px(ctx, bx + 3, wy, Math.max(2, bw - 6), 1, P.goldDark)
-    }
+  // A poor first setup: street-level glass, not a finished apartment yet.
+  outline(ctx, 38, VOID_H + 28, 116, 98, P.ink, 2)
+  px(ctx, 40, VOID_H + 30, 112, 94, '#0b141e')
+  px(ctx, 42, VOID_H + 32, 108, 58, '#08131f')
+  px(ctx, 42, VOID_H + 32, 108, 3, '#233342')
+  px(ctx, 94, VOID_H + 32, 3, 58, '#172431')
+  px(ctx, 42, VOID_H + 88, 108, 3, '#172431')
+
+  // Distant skyline is pushed into the window so it reads as atmosphere, not UI.
+  for (let i = 0; i < 9; i++) {
+    const bw = 5 + Math.floor(noise2(i, 11) * 8)
+    const bh = 16 + Math.floor(noise2(i, 18) * 32)
+    const bx = 48 + i * 11
+    const by = VOID_H + 86 - bh
+    px(ctx, bx, by, bw, bh, noise2(i, 24) > 0.5 ? '#102235' : '#0c1b2c')
+    px(ctx, bx, by, bw, 1, '#1d3a54')
+    if (i % 2 === 0) px(ctx, bx + 2, by + Math.floor(bh / 2), Math.max(1, bw - 3), 1, P.goldDark)
+  }
+  pxa(ctx, 43, VOID_H + 35, 106, 50, P.spiritLit, 0.035)
+  for (let by = VOID_H + 42; by < VOID_H + 84; by += 12) pxa(ctx, 46, by, 100, 1, P.spiritPale, 0.09)
+
+  // Side darkness frames the focal desk and keeps the character readable.
+  pxa(ctx, 0, VOID_H + 24, 36, 112, '#000000', 0.28)
+  pxa(ctx, 156, VOID_H + 24, 36, 112, '#000000', 0.28)
+  px(ctx, 10, VOID_H + 88, 24, 35, '#0d151e')
+  px(ctx, 158, VOID_H + 86, 22, 37, '#0d151e')
+  px(ctx, 13, VOID_H + 95, 14, 1, P.goldDark)
+  px(ctx, 162, VOID_H + 101, 12, 1, P.tealDeep)
+
+  px(ctx, 0, VOID_H + 124, R.w, 28, '#121a23')
+  px(ctx, 0, VOID_H + 124, R.w, 2, '#2d3a46')
+  px(ctx, 0, VOID_H + 149, R.w, 4, '#06090d')
+
+  for (let x = -10; x < R.w; x += 35) {
+    px(ctx, x, VOID_H + 155, 33, 17, '#17212a')
+    px(ctx, x, VOID_H + 155, 33, 1, '#2a3744')
+    px(ctx, x + 32, VOID_H + 155, 1, 17, '#0b1016')
   }
 
-  px(ctx, 0, VOID_H + 118, R.w, 34, '#101820')
-  px(ctx, 0, VOID_H + 118, R.w, 2, '#263747')
-  px(ctx, 0, VOID_H + 148, R.w, 4, '#070a0f')
+  px(ctx, 43, VOID_H + 128, 31, 17, '#4f3a25')
+  px(ctx, 121, VOID_H + 127, 29, 19, '#43311f')
+  outline(ctx, 43, VOID_H + 128, 31, 17, P.ink, 1)
+  outline(ctx, 121, VOID_H + 127, 29, 19, P.ink, 1)
 
-  for (let x = -16; x < R.w; x += 32) {
-    px(ctx, x, VOID_H + 154, 30, 18, '#18212a')
-    px(ctx, x, VOID_H + 154, 30, 1, '#2a3744')
-    px(ctx, x + 29, VOID_H + 154, 1, 18, '#0b1016')
-  }
+  px(ctx, 28, VOID_H + 132, 136, 10, '#6a492c')
+  px(ctx, 28, VOID_H + 132, 136, 2, '#9a704a')
+  px(ctx, 28, VOID_H + 140, 136, 2, '#2c2119')
+  outline(ctx, 28, VOID_H + 132, 136, 10, P.ink, 1)
 
-  outline(ctx, 51, VOID_H + 77, 91, 84, P.ink, 2)
-  px(ctx, 53, VOID_H + 79, 87, 80, '#111820')
-  px(ctx, 53, VOID_H + 79, 87, 5, '#2b3743')
-  px(ctx, 60, VOID_H + 84, 74, 1, '#43515f')
-  for (let x = 57; x < 138; x += 17) {
-    px(ctx, x, VOID_H + 84, 2, 72, '#070a0f')
-  }
-
-  px(ctx, 42, VOID_H + 130, 32, 19, '#5d432b')
-  px(ctx, 121, VOID_H + 129, 28, 22, '#4a3520')
-  outline(ctx, 42, VOID_H + 130, 32, 19, P.ink, 1)
-  outline(ctx, 121, VOID_H + 129, 28, 22, P.ink, 1)
-  px(ctx, 48, VOID_H + 137, 18, 1, P.goldDark)
-  px(ctx, 127, VOID_H + 138, 14, 1, P.goldDark)
-
-  px(ctx, 26, VOID_H + 133, 140, 10, '#6a492c')
-  px(ctx, 26, VOID_H + 133, 140, 2, '#9a704a')
-  px(ctx, 26, VOID_H + 141, 140, 2, '#2c2119')
-  outline(ctx, 26, VOID_H + 133, 140, 10, P.ink, 1)
-  px(ctx, 72, VOID_H + 122, 47, 18, P.plateDark)
-  px(ctx, 74, VOID_H + 124, 43, 11, '#061018')
-  px(ctx, 70, VOID_H + 140, 51, 4, P.plate)
-  px(ctx, 82, VOID_H + 128, 17, 1, P.tealLit)
-  px(ctx, 100, VOID_H + 132, 11, 1, P.spiritLit)
+  // Laptop as the real starter workstation. Keep it big and central.
+  outline(ctx, 68, VOID_H + 112, 56, 28, P.ink, 1)
+  px(ctx, 70, VOID_H + 114, 52, 22, P.plateDark)
+  px(ctx, 73, VOID_H + 117, 46, 14, '#061018')
+  px(ctx, 66, VOID_H + 140, 60, 5, P.plate)
+  px(ctx, 66, VOID_H + 144, 60, 1, P.ink)
+  px(ctx, 82, VOID_H + 122, 20, 1, P.tealLit)
+  px(ctx, 103, VOID_H + 128, 11, 1, P.spiritLit)
+  lightPool(ctx, 96, VOID_H + 126, 38, P.tealLit, 0.045)
 
   px(ctx, 34, VOID_H + 144, 29, 33, '#4a3520')
   px(ctx, 129, VOID_H + 145, 26, 32, '#5d432b')
