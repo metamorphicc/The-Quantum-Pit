@@ -1092,6 +1092,10 @@ export function refreshTasks(now = Date.now()): void {
   const s = getState()
   let changed = false
   const tasks = { ...s.tasks }
+  if (!tasks.session || tasks.session.period !== s.visits) {
+    tasks.session = { period: s.visits, baseline: snapshotBaseline(s), claimed: [] }
+    changed = true
+  }
   for (const period of PERIODS) {
     const idx = periodIndex(period, now)
     if (tasks[period].period !== idx) {
@@ -1146,6 +1150,9 @@ export function claimTask(id: string): ActionResult {
     const tasks = { ...s.tasks }
     if (def.category === 'milestone') {
       tasks.milestones = Array.from(new Set([...tasks.milestones, id]))
+    } else if (def.category === 'session') {
+      const bucket = tasks.session
+      tasks.session = { ...bucket, claimed: Array.from(new Set([...bucket.claimed, id])) }
     } else {
       const bucket = tasks[def.category]
       tasks[def.category] = { ...bucket, claimed: Array.from(new Set([...bucket.claimed, id])) }

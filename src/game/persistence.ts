@@ -257,6 +257,14 @@ function readTasks(
     return { period: fb.period, baseline: snapshotBaseline(metrics), claimed: [] }
   }
   return {
+    session:
+      src?.session && typeof src.session === 'object'
+        ? {
+            period: Math.floor(num((src.session as Partial<TaskBucketState>).period, fallback.session.period)),
+            baseline: readTaskBaseline((src.session as Partial<TaskBucketState>).baseline),
+            claimed: readTaskStringArray((src.session as Partial<TaskBucketState>).claimed),
+          }
+        : fallback.session,
     daily: bucket('daily'),
     weekly: bucket('weekly'),
     monthly: bucket('monthly'),

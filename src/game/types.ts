@@ -227,7 +227,7 @@ export interface TradeResult {
 }
 export type TaskPeriod = 'daily' | 'weekly' | 'monthly'
 
-export type TaskCategory = TaskPeriod | 'milestone'
+export type TaskCategory = 'session' | TaskPeriod | 'milestone'
 
 /** All monotonic - that is what lets a periodic task read as current-baseline. */
 export type TaskMetric =
@@ -273,6 +273,8 @@ export interface TaskBucketState {
 }
 
 export interface TasksState {
+  /** short goals for this app/game session */
+  session: TaskBucketState
   daily: TaskBucketState
   weekly: TaskBucketState
   monthly: TaskBucketState

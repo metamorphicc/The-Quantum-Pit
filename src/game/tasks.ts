@@ -95,12 +95,57 @@ export function freshTasks(now: number): TasksState {
     claimed: [],
   })
   return {
+    session: { period: 1, baseline: {}, claimed: [] },
     daily: bucket('daily'),
     weekly: bucket('weekly'),
     monthly: bucket('monthly'),
     milestones: [],
   }
 }
+
+export const SESSION_TASKS: TaskDef[] = [
+  {
+    id: 's_scan',
+    category: 'session',
+    name: 'Find a market',
+    desc: 'Scan the board once this session.',
+    icon: 'dice',
+    metric: 'scans',
+    target: 1,
+    reward: { xp: 35 },
+  },
+  {
+    id: 's_research',
+    category: 'session',
+    name: 'Build a thesis',
+    desc: 'Do one research action before forcing trades.',
+    icon: 'stew',
+    metric: 'researches',
+    target: 1,
+    reward: { xp: 45 },
+  },
+  {
+    id: 's_ticket',
+    category: 'session',
+    name: 'Send one ticket',
+    desc: 'Settle one simulated ticket.',
+    icon: 'terminal',
+    metric: 'bets',
+    target: 1,
+    reward: { bankroll: 12 },
+  },
+  {
+    id: 's_cooldown',
+    category: 'session',
+    name: 'Stay human',
+    desc: 'Take one break when the desk gets loud.',
+    icon: 'bed',
+    metric: 'recovers',
+    target: 1,
+    reward: { xp: 30 },
+  },
+]
+
 export const DAILY_TASKS: TaskDef[] = [
   {
     id: 'd_taps',
@@ -437,7 +482,9 @@ export function activeTasksFor(period: TaskPeriod, windowIndex: number): TaskDef
 }
 
 const TASK_BY_ID: Record<string, TaskDef> = Object.fromEntries(
-  [...DAILY_TASKS, ...WEEKLY_TASKS, ...MONTHLY_TASKS, ...MILESTONE_TASKS].map((t) => [t.id, t]),
+  [...SESSION_TASKS, ...DAILY_TASKS, ...WEEKLY_TASKS, ...MONTHLY_TASKS, ...MILESTONE_TASKS].map(
+    (t) => [t.id, t],
+  ),
 )
 
 export function taskById(id: string): TaskDef | undefined {
@@ -463,6 +510,14 @@ export function buildBucketViews(state: SaveData, period: TaskPeriod): TaskView[
   })
 }
 
+export function buildSessionViews(state: SaveData): TaskView[] {
+  const bucket = state.tasks.session
+  return SESSION_TASKS.map((def) => {
+    const base = bucket.baseline[def.metric] ?? 0
+    return toView(def, metricValue(state, def.metric) - base, bucket.claimed.includes(def.id))
+  })
+}
+
 export function buildMilestoneViews(state: SaveData): TaskView[] {
   return MILESTONE_TASKS.map((def) =>
     toView(def, metricValue(state, def.metric), state.tasks.milestones.includes(def.id)),
@@ -475,12 +530,18 @@ export function findTaskView(state: SaveData, id: string): TaskView | null {
   if (def.category === 'milestone') {
     return buildMilestoneViews(state).find((v) => v.def.id === id) ?? null
   }
+  if (def.category === 'session') {
+    return buildSessionViews(state).find((v) => v.def.id === id) ?? null
+  }
   return buildBucketViews(state, def.category).find((v) => v.def.id === id) ?? null
 }
 
 /** How many tasks are done and waiting to be claimed - drives the nav badge. */
 export function claimableCount(state: SaveData): number {
   let n = 0
+  for (const view of buildSessionViews(state)) {
+    if (view.done && !view.claimed) n++
+  }
   for (const period of PERIODS) {
     for (const view of buildBucketViews(state, period)) {
       if (view.done && !view.claimed) n++
@@ -497,6 +558,7 @@ export function claimableCount(state: SaveData): number {
     waiting to be claimed. */
 export function trackedTasks(state: SaveData, limit = 3): TaskView[] {
   const all: TaskView[] = [
+    ...buildSessionViews(state),
     ...PERIODS.flatMap((period) => buildBucketViews(state, period)),
     ...buildMilestoneViews(state),
   ]

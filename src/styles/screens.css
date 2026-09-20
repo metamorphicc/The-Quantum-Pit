@@ -136,13 +136,13 @@
   white-space: nowrap;
 }
 
-/* Four tabs across a ~316px panel: shrink type so "Milestones" fits unclipped. */
+/* Five tabs across a ~316px panel: shrink type so "Milestones" fits unclipped. */
 .tabs--quest .tab {
   min-height: 34px;
-  padding: 6px 2px;
-  gap: 3px;
+  padding: 6px 1px;
+  gap: 2px;
   font-size: 8px;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
 }
 .boot {
   position: relative;

@@ -9,14 +9,16 @@ import {
   PERIOD_LABEL,
   buildBucketViews,
   buildMilestoneViews,
+  buildSessionViews,
   periodEndsAt,
   rewardChips,
 } from '../game/tasks'
 import type { TaskPeriod, TaskView } from '../game/types'
 import { formatAway } from '../game/util'
-type QuestTab = TaskPeriod | 'milestone'
+type QuestTab = 'session' | TaskPeriod | 'milestone'
 
 const TABS: { id: QuestTab; label: string }[] = [
+  { id: 'session', label: 'Session' },
   { id: 'daily', label: PERIOD_LABEL.daily },
   { id: 'weekly', label: PERIOD_LABEL.weekly },
   { id: 'monthly', label: PERIOD_LABEL.monthly },
@@ -30,7 +32,7 @@ export function QuestWindow() {
 
   // land on the first tab each time the window opens
   useEffect(() => {
-    if (open) setTab('daily')
+    if (open) setTab('session')
   }, [open])
 
   // Esc closes, matching the scrim and x paths
@@ -46,9 +48,20 @@ export function QuestWindow() {
   if (!open) return null
 
   const now = Date.now()
-  const views = tab === 'milestone' ? buildMilestoneViews(s) : buildBucketViews(s, tab)
+  const views =
+    tab === 'milestone'
+      ? buildMilestoneViews(s)
+      : tab === 'session'
+        ? buildSessionViews(s)
+        : buildBucketViews(s, tab)
 
   const meta = (() => {
+    if (tab === 'session') {
+      const ready = views.filter((v) => v.done && !v.claimed).length
+      if (ready > 0) return `${ready} ready to claim`
+      const done = views.filter((v) => v.claimed).length
+      return `${done}/${views.length} session goals done`
+    }
     if (tab === 'milestone') {
       const reached = views.filter((v) => v.claimed).length
       return `${reached}/${views.length} reached`
@@ -102,6 +115,11 @@ export function QuestWindow() {
           {tab === 'milestone' ? (
             <p className="questwin__note t-label t-dim">
               Career steps. Each one pays out once, the moment you reach it.
+            </p>
+          ) : null}
+          {tab === 'session' ? (
+            <p className="questwin__note t-label t-dim">
+              Short contracts for the current run. They reset when a new session starts.
             </p>
           ) : null}
         </div>
