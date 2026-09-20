@@ -603,6 +603,15 @@
     inset 0 -3px 0 0 rgba(0, 0, 0, 0.45);
 }
 
+.room__status.is-habit .room__status-text {
+  color: var(--gold-lit);
+  background: #17150f;
+  box-shadow:
+    inset 3px 0 0 0 var(--gold-dark),
+    inset 0 2px 0 0 rgba(255, 209, 102, 0.12),
+    inset 0 -3px 0 0 rgba(0, 0, 0, 0.45);
+}
+
 .room__bars {
   display: flex;
   flex-direction: column;

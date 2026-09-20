@@ -33,6 +33,7 @@ import {
 } from './tasks'
 import { COPY } from './copy'
 import { nextDailyLogin, rewardLabel } from './daily'
+import { badHabitPenalty } from './badHabits'
 import { SOCIAL_NOTE_COOLDOWN, SOCIAL_POST_COOLDOWN, socialStatusForRep } from './social'
 import { achievementToast, burst, emitFx, floatText, toast } from './fx'
 import {
@@ -736,7 +737,10 @@ export function placeSimBet(marketId: string, side: Side, stake: number): Action
   if (!isReady('fill')) return refusal('The last ticket has not printed yet.')
   if (stake > s.bankroll) return refuse(COPY.broke())
   const cost = marketCostWithRig(def)
-  if (s.stats.focus < cost.focus) return refuse(COPY.noFocus())
+  const habit = badHabitPenalty(s)
+  const focusCost = cost.focus + (habit?.focus ?? 0)
+  const heatCost = cost.heat + (habit?.heat ?? 0)
+  if (s.stats.focus < focusCost) return refuse(COPY.noFocus())
 
   const { price, slip, stale } = previewFill(marketId, side, stake, now)
   const slipped = slip > 0.005
@@ -775,7 +779,7 @@ export function placeSimBet(marketId: string, side: Side, stake: number): Action
 
   // charged now: the focus and heat of actually sizing something up
   setState({
-    stats: addStats({ focus: -cost.focus, heat: cost.heat }),
+    stats: addStats({ focus: -focusCost, heat: heatCost }),
     lastTrade: null,
   })
 
@@ -787,6 +791,7 @@ export function placeSimBet(marketId: string, side: Side, stake: number): Action
   if (stale) toast('Stale quote', 'bad', 'Filled worse than the board showed')
   else if (slipped) toast(COPY.slip(), 'bad')
   if (klass) toast(`${klass.short} market`, 'good', 'Class edge applied')
+  if (habit) toast('Bad habit tax', 'bad', `+${habit.heat} Heat / -${habit.focus} Focus`)
 
   window.setTimeout(() => resolveFill(result), BET.resolveDelayMs)
   return { ok: true, message: '' }

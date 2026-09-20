@@ -15,6 +15,7 @@ import {
   setScreen,
 } from '../game/actions'
 import { BET, MARKETS, MARKET_BY_ID, WORLD, classFitsMarket } from '../game/config'
+import { badHabitPenalty } from '../game/badHabits'
 import { getState, useGameState } from '../game/store'
 import { formatCash, formatPrice, formatProb, formatSigned } from '../game/util'
 import type { Side } from '../game/types'
@@ -32,13 +33,16 @@ export function BetScreen() {
 
   const fill = previewFill(def.id, side ?? 'yes', stake)
   const cost = marketCostWithRig(def)
+  const habit = badHabitPenalty(s)
+  const focusCost = cost.focus + (habit?.focus ?? 0)
+  const heatCost = cost.heat + (habit?.heat ?? 0)
   const feeRate = effectiveFeeRate()
   const trade = s.lastTrade
   const resolving = s.activity.kind === 'bet'
   const hedged = Date.now() < s.hedgeUntil
 
   const affordable = stake <= s.bankroll
-  const focused = s.stats.focus >= cost.focus
+  const focused = s.stats.focus >= focusCost
   const canFill = side !== null && affordable && focused && !resolving && isReady('fill')
 
   // whatever the machine should be showing right now
@@ -204,6 +208,13 @@ const canvasRef = useRef<HTMLCanvasElement>(null)
                 <b>+{Math.round(fill.slip * 100)}c</b>
               </li>
             ) : null}
+            {habit ? (
+              <li className="is-down">
+                <PixelIcon name="flame" size={12} />
+                <span>Bad habit tax</span>
+                <b>+{habit.heat}H / -{habit.focus}F</b>
+              </li>
+            ) : null}
             {klass ? (
               <li className="is-up">
                 <PixelIcon name={klass.icon} size={12} />
@@ -237,7 +248,7 @@ const canvasRef = useRef<HTMLCanvasElement>(null)
             size="lg"
             full
             disabled={!canFill}
-            sublabel={`Fee ${Math.round(feeRate * 1000) / 10}% - costs ${cost.focus} focus`}
+            sublabel={`Fee ${Math.round(feeRate * 1000) / 10}% - costs ${focusCost} focus / +${heatCost} heat`}
             onClick={submit}
           />
         </PixelPanel>

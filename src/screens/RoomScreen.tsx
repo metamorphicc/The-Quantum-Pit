@@ -32,6 +32,7 @@ import {
   levelFromXp,
   sanitizeName,
 } from '../game/config'
+import { badHabitWarning } from '../game/badHabits'
 import { nextDailyLogin, rewardLabel } from '../game/daily'
 import { bankrollHealth, useGameState } from '../game/store'
 import { claimableCount } from '../game/tasks'
@@ -98,6 +99,7 @@ export function RoomScreen() {
   const tutorial = TUTORIAL_STEPS[Math.min(tutorialStep, TUTORIAL_STEPS.length - 1)]!
   const daily = nextDailyLogin(s, now)
   const dailyVisible = s.onboarded && dailyOpen
+  const badHabit = badHabitWarning(s)
 
   useEffect(() => {
     if (s.onboarded && daily.claimable) setDailyOpen(true)
@@ -114,6 +116,7 @@ export function RoomScreen() {
     if (hedgeOn) return 'Hedge is on. Next ticket is dampened.'
     if (heatHigh) return 'Heat is high. Take a break.'
     if (focusLow) return 'Focus is low. Take a break.'
+    if (badHabit) return badHabit.message
     return 'No open ticket.'
   })()
 
@@ -211,7 +214,7 @@ export function RoomScreen() {
 
       <div className="room__hud">
         <div
-          className={`room__status ${broke ? 'is-broke' : ''} ${tutorial.target === 'status' ? 'is-tutorial-target' : ''}`}
+          className={`room__status ${broke ? 'is-broke' : ''} ${badHabit ? 'is-habit' : ''} ${tutorial.target === 'status' ? 'is-tutorial-target' : ''}`}
         >
           <span className="room__status-text">{plainStatus}</span>
           <div className="room__status-actions">
