@@ -14,7 +14,7 @@ import {
   quoteFor,
   setScreen,
 } from '../game/actions'
-import { BET, MARKETS, MARKET_BY_ID, WORLD, traderClassById } from '../game/config'
+import { BET, MARKETS, MARKET_BY_ID, WORLD, classFitsMarket } from '../game/config'
 import { getState, useGameState } from '../game/store'
 import { formatCash, formatPrice, formatProb, formatSigned } from '../game/util'
 import type { Side } from '../game/types'
@@ -26,8 +26,7 @@ export function BetScreen() {
 
   const marketId = s.focusMarket ?? MARKETS[0]!.id
   const def = MARKET_BY_ID[marketId] ?? MARKETS[0]!
-  const klass = traderClassById(s.traderClass)
-  const favored = klass?.marketBias === def.category
+  const klass = classFitsMarket(s.traderClass, def.category)
   const quote = quoteFor(def.id)
   const stale = isStale(quote.quotedAt)
 
@@ -205,11 +204,11 @@ const canvasRef = useRef<HTMLCanvasElement>(null)
                 <b>+{Math.round(fill.slip * 100)}c</b>
               </li>
             ) : null}
-            {favored && klass ? (
+            {klass ? (
               <li className="is-up">
                 <PixelIcon name={klass.icon} size={12} />
-                <span>{klass.short} class</span>
-                <b>+{Math.round(klass.winBonus * 100)}%</b>
+                <span>{klass.short} lane</span>
+                <b>+{Math.round(klass.winBonus * 100)}% / -{klass.focusSave + klass.heatSave}</b>
               </li>
             ) : null}
             {hedged ? (

@@ -64,6 +64,8 @@ export interface TraderClassDef {
   icon: IconName
   marketBias: MarketCategory
   statBoost: Partial<Stats>
+  focusSave: number
+  heatSave: number
   winBonus: number
   desc: string
 }

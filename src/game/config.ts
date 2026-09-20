@@ -1,6 +1,7 @@
 import type {
   ActionResult,
   CosmeticDef,
+  MarketCategory,
   MarketDef,
   RigDef,
   SaveData,
@@ -138,6 +139,8 @@ export const TRADER_CLASSES: TraderClassDef[] = [
     icon: 'coin',
     marketBias: 'crypto',
     statBoost: { edge: 4, focus: 2, heat: 4 },
+    focusSave: 1,
+    heatSave: 1,
     winBonus: 0.035,
     desc: 'Better at spot coins, ETFs and chain narratives. Runs a little hotter.',
   },
@@ -148,6 +151,8 @@ export const TRADER_CLASSES: TraderClassDef[] = [
     icon: 'star',
     marketBias: 'sports',
     statBoost: { edge: 3, focus: 7 },
+    focusSave: 2,
+    heatSave: 1,
     winBonus: 0.035,
     desc: 'Reads schedules and public overreaction. Strong focus, cleaner sports fills.',
   },
@@ -158,6 +163,8 @@ export const TRADER_CLASSES: TraderClassDef[] = [
     icon: 'bolt',
     marketBias: 'perps',
     statBoost: { edge: 5, focus: -2, heat: 8 },
+    focusSave: 1,
+    heatSave: 0,
     winBonus: 0.04,
     desc: 'Built for liquidations, funding and leverage. More edge, more heat.',
   },
@@ -168,6 +175,8 @@ export const TRADER_CLASSES: TraderClassDef[] = [
     icon: 'gear',
     marketBias: 'politics',
     statBoost: { edge: 6, focus: 1, heat: 2 },
+    focusSave: 1,
+    heatSave: 1,
     winBonus: 0.035,
     desc: 'Polls, timelines and procedural weirdness. Starts with the best raw Edge.',
   },
@@ -178,6 +187,8 @@ export const TRADER_CLASSES: TraderClassDef[] = [
     icon: 'dice',
     marketBias: 'culture',
     statBoost: { edge: 2, focus: 5, heat: -3 },
+    focusSave: 1,
+    heatSave: 2,
     winBonus: 0.03,
     desc: 'Normie markets: awards, media, public events. Calm, flexible, less spiky.',
   },
@@ -189,6 +200,14 @@ export const TRADER_CLASS_BY_ID: Record<TraderClassId, TraderClassDef> = Object.
 
 export function traderClassById(id: TraderClassId | null | undefined): TraderClassDef | null {
   return id ? (TRADER_CLASS_BY_ID[id] ?? null) : null
+}
+
+export function classFitsMarket(
+  classId: TraderClassId | null | undefined,
+  category: MarketCategory,
+): TraderClassDef | null {
+  const klass = traderClassById(classId)
+  return klass?.marketBias === category ? klass : null
 }
 export interface ActionDef {
   id: string

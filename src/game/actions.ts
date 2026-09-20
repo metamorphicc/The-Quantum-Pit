@@ -17,6 +17,7 @@ import {
   STAT_ORDER,
   SUPPLY_BY_ID,
   TAP,
+  classFitsMarket,
   traderClassById,
   WORLD,
   refusal,
@@ -207,9 +208,10 @@ export function scanCostWithRig(): { focus: number; heat: number } {
 
 export function marketCostWithRig(def: MarketDef): { focus: number; heat: number } {
   const bonus = equippedRigBonus()
+  const klass = classFitsMarket(getState().traderClass, def.category)
   return {
-    focus: savedCost(def.focusCost, bonus.betFocusSave ?? 0, 1),
-    heat: savedCost(def.heatCost, bonus.betHeatSave ?? 0),
+    focus: savedCost(def.focusCost, (bonus.betFocusSave ?? 0) + (klass?.focusSave ?? 0), 1),
+    heat: savedCost(def.heatCost, (bonus.betHeatSave ?? 0) + (klass?.heatSave ?? 0)),
   }
 }
 
@@ -742,8 +744,8 @@ export function placeSimBet(marketId: string, side: Side, stake: number): Action
   // the coin: the quote, tilted toward his side by Edge. Edge does not buy
   // certainty, it buys a few points - which over enough tickets is the game.
   const bonus = equippedRigBonus()
-  const klass = traderClassById(s.traderClass)
-  const classTilt = klass?.marketBias === def.category ? klass.winBonus : 0
+  const klass = classFitsMarket(s.traderClass, def.category)
+  const classTilt = klass?.winBonus ?? 0
   const tilt = (s.stats.edge / 100) * (BET.edgeSwing + (bonus.edgeSwingAdd ?? 0)) + classTilt
   const trueYes = Math.min(0.97, Math.max(0.03, quoteFor(marketId).prob + (side === 'yes' ? tilt : -tilt)))
   const trueProb = side === 'yes' ? trueYes : 1 - trueYes
@@ -784,6 +786,7 @@ export function placeSimBet(marketId: string, side: Side, stake: number): Action
   buzz('medium')
   if (stale) toast('Stale quote', 'bad', 'Filled worse than the board showed')
   else if (slipped) toast(COPY.slip(), 'bad')
+  if (klass) toast(`${klass.short} market`, 'good', 'Class edge applied')
 
   window.setTimeout(() => resolveFill(result), BET.resolveDelayMs)
   return { ok: true, message: '' }

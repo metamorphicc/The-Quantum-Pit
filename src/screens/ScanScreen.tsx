@@ -4,14 +4,13 @@ import { PixelIcon } from '../components/PixelIcon'
 import { PixelPanel } from '../components/PixelPanel'
 import { ScreenHeader } from '../components/ScreenHeader'
 import { boardQuotes, cooldownLeft, doScan, isStale, marketCostWithRig, openBet, scanCostWithRig } from '../game/actions'
-import { MARKET, MARKET_BY_ID, WORLD, traderClassById } from '../game/config'
+import { MARKET, MARKET_BY_ID, WORLD, classFitsMarket } from '../game/config'
 import { useGameState } from '../game/store'
 import { formatPrice, formatProb, formatSeconds } from '../game/util'
 export function ScanScreen() {
   const s = useGameState()
   const now = Date.now()
   const board = boardQuotes()
-  const klass = traderClassById(s.traderClass)
   const left = cooldownLeft('scan', now)
   const scanCost = scanCostWithRig()
   const broke = s.stats.focus < scanCost.focus
@@ -29,7 +28,7 @@ export function ScanScreen() {
               const def = MARKET_BY_ID[q.id]!
               const cost = marketCostWithRig(def)
               const stale = isStale(q.quotedAt, now)
-              const favored = klass?.marketBias === def.category
+              const fit = classFitsMarket(s.traderClass, def.category)
               return (
                 <li key={q.id}>
                   <button
@@ -44,12 +43,13 @@ export function ScanScreen() {
                     <span className="mkt__mid">
                       <span className="mkt__tag t-label t-dim">
                         {def.tag} / {def.category}
-                        {favored ? ' / favored' : ''}
+                        {fit ? ` / ${fit.short} lane` : ''}
                         {stale ? ' - stale' : ''}
                       </span>
                       <span className="mkt__q t-body">{def.question}</span>
                       <span className="mkt__cost t-label t-dim">
                         {cost.focus} focus - {cost.heat} heat
+                        {fit ? ` - class saves ${fit.focusSave}F/${fit.heatSave}H` : ''}
                       </span>
                     </span>
 
