@@ -91,3 +91,7 @@ export function badHabitRemedy(id: BadHabitId): BadHabitRemedy {
       return { actionId: 'recover', label: 'fix: slow down' }
   }
 }
+
+export function clearsBadHabit(id: BadHabitId, actionId: string): boolean {
+  return badHabitRemedy(id).actionId === actionId
+}

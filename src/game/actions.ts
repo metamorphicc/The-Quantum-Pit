@@ -33,7 +33,7 @@ import {
 } from './tasks'
 import { COPY } from './copy'
 import { nextDailyLogin, rewardLabel } from './daily'
-import { badHabitPenalty } from './badHabits'
+import { badHabitPenalty, badHabitWarning, clearsBadHabit, type BadHabitId } from './badHabits'
 import { SOCIAL_NOTE_COOLDOWN, SOCIAL_POST_COOLDOWN, socialStatusForRep } from './social'
 import { achievementToast, burst, emitFx, floatText, toast } from './fx'
 import {
@@ -326,6 +326,12 @@ function refuse(message: string): ActionResult {
   return refusal(message)
 }
 
+function maybeClearBadHabit(beforeId: BadHabitId | undefined, actionId: string): void {
+  if (!beforeId || !clearsBadHabit(beforeId, actionId)) return
+  if (badHabitWarning(getState())) return
+  toast('Habit cleared', 'good', 'The desk is back under control')
+}
+
 /** Checks an action's stat window. Returns the refusal line, or null if fine. */
 function blockedBy(actionId: string): string | null {
   const req = ACTIONS[actionId]?.requires
@@ -336,6 +342,7 @@ function blockedBy(actionId: string): string | null {
   return null
 }
 export function checkPnl(x?: number, y?: number): void {
+  const habitBefore = badHabitWarning(getState())
   const s = getState()
   const now = Date.now()
   const window =
@@ -430,6 +437,7 @@ export function doAction(actionId: string): ActionResult {
   showGains(gain)
   showCash(cash)
   showCredits(credits)
+  maybeClearBadHabit(habitBefore?.id, actionId)
   return { ok: true, message: '', gain, bankroll: cash, credits }
 }
 export function useSupply(supplyId: string): ActionResult {
@@ -437,6 +445,7 @@ export function useSupply(supplyId: string): ActionResult {
   if (!supply) return refusal('There is nothing to read there.')
 
   const s = getState()
+  const habitBefore = badHabitWarning(s)
   const stock = s.stash[supplyId] ?? 0
   if (stock <= 0) {
     play('deny')
@@ -472,12 +481,14 @@ export function useSupply(supplyId: string): ActionResult {
   if (supply.effect === 'clearCooldowns') {
     toast('Head clears', 'good', 'Everything is usable again')
   }
+  maybeClearBadHabit(habitBefore?.id, 'research')
   return { ok: true, message: '', gain: supply.gain }
 }
 
 /** The free read. No stash needed, long cooldown, small edge. */
 export function deskRead(): ActionResult {
   const s = getState()
+  const habitBefore = badHabitWarning(s)
   const gain = deskReadGainWithRig()
   const focusCost = Math.abs(gain.focus ?? 0)
   if (!isReady('read')) {
@@ -504,6 +515,7 @@ export function deskRead(): ActionResult {
   burst('crumb', { count: 6 })
   buzz('light')
   showGains(gain)
+  maybeClearBadHabit(habitBefore?.id, 'research')
   return { ok: true, message: '', gain }
 }
 
@@ -672,6 +684,7 @@ function rollQuotes(now: number, only?: string): MarketState[] {
 
 export function doScan(): ActionResult {
   const s = getState()
+  const habitBefore = badHabitWarning(s)
   if (!isReady('scan')) {
     play('deny')
     return refusal(COPY.cooldown())
@@ -697,6 +710,7 @@ export function doScan(): ActionResult {
   burst('spark', { count: 8 })
   buzz('medium')
   showGains(gain)
+  maybeClearBadHabit(habitBefore?.id, 'scan')
   return { ok: true, message: '', gain }
 }
 /** What a ticket would cost and pay, before the coin is thrown. */
