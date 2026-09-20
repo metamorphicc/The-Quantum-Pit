@@ -13,6 +13,11 @@ export interface BadHabitPenalty extends BadHabitWarning {
   heat: number
 }
 
+export interface BadHabitRemedy {
+  actionId: 'research' | 'scan' | 'recover'
+  label: string
+}
+
 function sessionValue(state: SaveData, metric: TaskMetric): number {
   const base = state.tasks.session.baseline[metric] ?? 0
   return Math.max(0, metricValue(state, metric) - base)
@@ -71,5 +76,18 @@ export function badHabitPenalty(state: SaveData): BadHabitPenalty | null {
       return { ...warning, focus: 2, heat: 2 }
     case 'overtrading':
       return { ...warning, focus: 1, heat: 3 }
+  }
+}
+
+export function badHabitRemedy(id: BadHabitId): BadHabitRemedy {
+  switch (id) {
+    case 'no-thesis':
+      return { actionId: 'research', label: 'fix: research' }
+    case 'blind-clicking':
+      return { actionId: 'scan', label: 'fix: scan board' }
+    case 'chasing-losses':
+      return { actionId: 'recover', label: 'fix: break' }
+    case 'overtrading':
+      return { actionId: 'recover', label: 'fix: slow down' }
   }
 }

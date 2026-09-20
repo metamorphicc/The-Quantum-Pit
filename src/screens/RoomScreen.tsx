@@ -32,7 +32,7 @@ import {
   levelFromXp,
   sanitizeName,
 } from '../game/config'
-import { badHabitWarning } from '../game/badHabits'
+import { badHabitRemedy, badHabitWarning } from '../game/badHabits'
 import { nextDailyLogin, rewardLabel } from '../game/daily'
 import { bankrollHealth, useGameState } from '../game/store'
 import { claimableCount } from '../game/tasks'
@@ -100,6 +100,7 @@ export function RoomScreen() {
   const daily = nextDailyLogin(s, now)
   const dailyVisible = s.onboarded && dailyOpen
   const badHabit = badHabitWarning(s)
+  const habitFix = badHabit ? badHabitRemedy(badHabit.id) : null
 
   useEffect(() => {
     if (s.onboarded && daily.claimable) setDailyOpen(true)
@@ -135,6 +136,8 @@ export function RoomScreen() {
   const actionSub = (id: string, blocked: boolean, left: number): string | undefined => {
     if (left > 0) return formatSeconds(left)
     if (blocked) return 'not ready'
+    if (habitFix?.actionId === id) return habitFix.label
+    if (id === 'bet' && badHabit) return 'habit tax active'
     if (id === 'bet') return 'take a trade'
     if (id === 'research') return 'improve edge'
     if (id === 'hedge') return inTicket || hedgeOn ? 'reduce risk' : 'risk prep'
@@ -151,6 +154,7 @@ export function RoomScreen() {
     const { def, left, blocked } = actionState(id)
     const isPrimary = opts.primary
     const visuallyMutedHedge = id === 'hedge' && !inTicket && !hedgeOn
+    const recommended = habitFix?.actionId === id
     return (
       <PixelButton
         key={id}
@@ -175,6 +179,7 @@ export function RoomScreen() {
           opts.utility ? 'room__action-utility' : '',
           opts.secondary ? 'room__action-secondary' : '',
           visuallyMutedHedge ? 'room__action-muted' : '',
+          recommended ? 'room__action-recommended' : '',
         ]
           .filter(Boolean)
           .join(' ')}
