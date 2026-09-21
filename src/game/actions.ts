@@ -48,6 +48,7 @@ import {
   adoptSave,
   getSaveSlice,
   getState,
+  getStateEpoch,
   resetState,
   setState,
 } from './store'
@@ -268,6 +269,7 @@ export function closeQuests(): void {
 }
 
 export function completeOnboarding(classId: TraderClassId, nameInput?: string): ActionResult {
+  if (getState().onboarded) return refusal('Your desk is already picked.')
   const klass = traderClassById(classId)
   if (!klass) return refusal('Pick a desk first.')
   const name = nameInput !== undefined ? sanitizeName(nameInput) : getState().name
@@ -342,7 +344,6 @@ function blockedBy(actionId: string): string | null {
   return null
 }
 export function checkPnl(x?: number, y?: number): void {
-  const habitBefore = badHabitWarning(getState())
   const s = getState()
   const now = Date.now()
   const window =
@@ -391,6 +392,7 @@ export function doAction(actionId: string): ActionResult {
     return refusal(COPY.cooldown())
   }
 
+  const habitBefore = badHabitWarning(getState())
   const s = getState()
   const gain = actionGainWithRig(actionId, def.gain ?? {})
   const cash = def.cash ?? 0
@@ -736,6 +738,8 @@ export function previewFill(
   return { price, slip, payout, profit: payout - stake, stale }
 }
 
+let pendingFillEpoch: number | null = null
+
 /**
  * Puts a simulated ticket on. Charges the desk cost immediately, then resolves
  * after a short beat so the reveal has somewhere to land - `lastTrade` appears
@@ -743,12 +747,16 @@ export function previewFill(
  */
 export function placeSimBet(marketId: string, side: Side, stake: number): ActionResult {
   const def = MARKET_BY_ID[marketId]
-  if (!def) return refusal('That question is not on the board.')
+  if (!Object.prototype.hasOwnProperty.call(MARKET_BY_ID, marketId)) return refusal('That question is not on the board.')
+  if (!Number.isFinite(stake) || stake <= 0 || (side !== 'yes' && side !== 'no')) {
+    return refusal('Choose a valid side and a positive stake.')
+  }
 
   const s = getState()
   const now = Date.now()
 
-  if (!isReady('fill')) return refusal('The last ticket has not printed yet.')
+  const epoch = getStateEpoch()
+  if (pendingFillEpoch === epoch || !isReady('fill')) return refusal('The last ticket has not printed yet.')
   if (stake > s.bankroll) return refuse(COPY.broke())
   const cost = marketCostWithRig(def)
   const habit = badHabitPenalty(s)
@@ -807,7 +815,11 @@ export function placeSimBet(marketId: string, side: Side, stake: number): Action
   if (klass) toast(`${klass.short} market`, 'good', 'Class edge applied')
   if (habit) toast('Bad habit tax', 'bad', `+${habit.heat} Heat / -${habit.focus} Focus`)
 
-  window.setTimeout(() => resolveFill(result), BET.resolveDelayMs)
+  pendingFillEpoch = epoch
+  window.setTimeout(() => {
+    if (pendingFillEpoch === epoch) pendingFillEpoch = null
+    if (getStateEpoch() === epoch) resolveFill(result)
+  }, BET.resolveDelayMs)
   return { ok: true, message: '' }
 }
 
@@ -884,8 +896,10 @@ function spend(price: number, currency: Currency): void {
 
 export function buySupply(supplyId: string, qty = 1): ActionResult {
   const supply = SUPPLY_BY_ID[supplyId]
-  if (!supply) return refusal('Not for sale.')
+  if (!Object.prototype.hasOwnProperty.call(SUPPLY_BY_ID, supplyId)) return refusal('Not for sale.')
+  if (!Number.isSafeInteger(qty) || qty <= 0) return refusal('Choose a positive whole quantity.')
   const cost = supply.price * qty
+  if (!Number.isFinite(cost)) return refusal('Invalid purchase total.')
   if (!canAfford(cost, supply.currency)) {
     const msg = supply.currency === 'bankroll' ? COPY.broke() : COPY.noCredits()
     play('deny')
@@ -967,6 +981,7 @@ export async function buyCosmetic(
 
   const s = getState()
   if (s.ownedCosmetics.includes(id)) return equipCosmetic(id)
+  const epoch = getStateEpoch()
 
   if (provider === 'base' && (s.loginMethod !== 'base' || !s.walletAddress)) {
     const msg = 'Enter with Base Account to buy through Base.'
@@ -984,6 +999,7 @@ export async function buyCosmetic(
     // confirmed onchain, or Stars granted by the webhook). So this local grant
     // is a cache of server truth, not the client deciding it paid.
     const receipt = await payForCosmetic(cosmetic, s, provider)
+    if (getStateEpoch() !== epoch) return refusal('Account changed. Restore purchases on the paying account.')
     setState((state) => ({
       ownedCosmetics: [...new Set([...state.ownedCosmetics, id])],
       activeCosmetics: { ...state.activeCosmetics, [cosmetic.category]: id },
@@ -1045,9 +1061,10 @@ export function setLoginIdentity(
  */
 export async function syncEntitlements(): Promise<void> {
   const s = getState()
+  const epoch = getStateEpoch()
   if (s.loginMethod !== 'telegram' && s.loginMethod !== 'base') return
   const owned = await fetchEntitlements(s)
-  if (owned.length === 0) return
+  if (getStateEpoch() !== epoch || owned.length === 0) return
   setState((state) => {
     const merged = [...new Set([...state.ownedCosmetics, ...owned])]
     if (merged.length === state.ownedCosmetics.length) return {}
@@ -1060,6 +1077,7 @@ export async function claimAchievement(id: AchievementId): Promise<ActionResult>
   if (!def) return refusal('Unknown badge.')
 
   const s = getState()
+  const epoch = getStateEpoch()
   const record = s.achievements[id]
   if (!record) return refusal('Unlock it in-game first.')
   if (record.claimStatus === 'claimed') return refusal('Already claimed.')
@@ -1080,6 +1098,7 @@ export async function claimAchievement(id: AchievementId): Promise<ActionResult>
 
   try {
     const txHash = await claimBaseAchievementBadge(def, s.walletAddress)
+    if (getStateEpoch() !== epoch) return refusal('Account changed. The claim belongs to the previous wallet.')
     setState((state) => ({
       achievements: {
         ...state.achievements,
@@ -1252,9 +1271,10 @@ export function saveNow(): void {
  * the state out from under someone who is already playing.
  */
 export async function syncFromCloud(): Promise<void> {
+  const epoch = getStateEpoch()
   try {
     const result = await pullCloudSave(Date.now())
-    if (result && getState().screen === 'boot') {
+    if (result && getStateEpoch() === epoch && getState().screen === 'boot') {
       adoptSave(result.save, result.awayMs)
     }
   } catch {

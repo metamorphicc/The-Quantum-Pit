@@ -142,7 +142,11 @@ function migrate(input: Partial<SaveData>, base: SaveData): SaveData {
   // Pulled out of the return so the task baselines can key off the migrated
   // totals, not the fresh-save zeros in `base`.
   const xp = Math.max(0, Math.floor(num(input.xp, base.xp)))
-  const tally = { ...base.tally, ...(input.tally ?? {}) }
+  const tally = { ...base.tally }
+  for (const key of Object.keys(tally) as (keyof typeof tally)[]) {
+    const value = Math.min(Number.MAX_SAFE_INTEGER, Math.max(0, num(input.tally?.[key], tally[key])))
+    tally[key] = key === 'bestWin' || key === 'worstLoss' ? value : Math.floor(value)
+  }
 
   return {
     version: SAVE_VERSION,
@@ -161,7 +165,7 @@ function migrate(input: Partial<SaveData>, base: SaveData): SaveData {
     xp,
     peakBankroll: Math.max(bankroll, num(input.peakBankroll, base.peakBankroll)),
     credits: Math.max(0, num(input.credits, base.credits)),
-    stash: Object.keys(stash).length ? stash : base.stash,
+    stash: input.stash && typeof input.stash === 'object' && !Array.isArray(input.stash) ? stash : base.stash,
     owned: Array.isArray(input.owned)
       ? Array.from(new Set([...base.owned, ...input.owned.filter((x) => typeof x === 'string')]))
       : base.owned,

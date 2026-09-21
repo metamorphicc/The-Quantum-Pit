@@ -98,14 +98,13 @@ export async function fetchEntitlements(state: GameState): Promise<string[]> {
   if (state.loginMethod !== 'telegram' && state.loginMethod !== 'base') return []
   const endpoint = env().VITE_QP_ENTITLEMENTS_URL ?? '/api/entitlements'
   let body = identityBody(state)
-  if (state.loginMethod === 'base') {
-    if (!state.walletAddress) return []
-    const proof = await signBaseEntitlementProof(state.walletAddress)
-    if (!proof) return []
-    body = { ...body, ...proof }
-  }
-
   try {
+    if (state.loginMethod === 'base') {
+      if (!state.walletAddress) return []
+      const proof = await signBaseEntitlementProof(state.walletAddress)
+      if (!proof) return []
+      body = { ...body, ...proof }
+    }
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },

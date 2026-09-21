@@ -53,7 +53,7 @@ export function badHabitWarning(state: SaveData): BadHabitWarning | null {
     }
   }
 
-  if (bets >= 4 && bets > scans + researches + 1) {
+  if (bets >= 4 && bets > scans + researches + 1 && recovers === 0) {
     return {
       id: 'overtrading',
       message: 'Overtrading. Slow down, read, or cool the desk.',

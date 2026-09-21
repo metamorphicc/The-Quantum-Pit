@@ -39,6 +39,7 @@ export function periodEndsAt(period: TaskPeriod, now: number): number {
 export const PERIODIC_METRICS: TaskMetric[] = [
   'bets',
   'wins',
+  'losses',
   'scans',
   'researches',
   'hedges',

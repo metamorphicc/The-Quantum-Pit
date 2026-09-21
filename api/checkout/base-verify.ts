@@ -3,7 +3,7 @@ import { asString, parseBody, rejectUnsafeJson, rejectUnsupportedMethod } from '
 import { baseRpcUrl, treasuryAddress } from '../_lib/env'
 import { getProduct } from '../_lib/products'
 import { BASE_USDC, verifyErc20Transfer } from '../_lib/base-rpc'
-import { claimOnce, grantEntitlement, keys, listEntitlements, storeConfigured } from '../_lib/store'
+import { claimOnce, grantEntitlement, keys, listEntitlements, readClaim, storeConfigured } from '../_lib/store'
 import { enforceRateLimit } from '../_lib/rate-limit'
 
 const ADDRESS_RE = /^0x[a-fA-F0-9]{40}$/
@@ -49,7 +49,7 @@ export default async function handler(req: Req, res: Res): Promise<void> {
       txHash,
       token: BASE_USDC,
       recipient: treasury,
-      minUnits: product.usdcUnits,
+      units: product.usdcUnits,
     })
   } catch {
     // Transient RPC trouble - let the client retry.
@@ -85,12 +85,14 @@ export default async function handler(req: Req, res: Res): Promise<void> {
   })
 
   try {
-    // First writer processes the grant; a replayed hash is a no-op (idempotent).
+    // Reserve a transaction once, but retry its original grant after any store failure.
     const fresh = await claimOnce(keys.basePayment(txHash), record)
     if (!fresh) {
-      const owned = await listEntitlements(keys.baseEntitlements(payer))
-      res.status(409).json({ verified: false, error: 'This Base transaction was already used.', owned })
-      return
+      const stored = JSON.parse((await readClaim(keys.basePayment(txHash))) ?? 'null')
+      if (stored?.productId !== product.id || stored?.payer?.toLowerCase() !== payer.toLowerCase()) {
+        res.status(409).json({ verified: false, error: 'This Base transaction was already used.' })
+        return
+      }
     }
 
     await grantEntitlement(keys.baseEntitlements(payer), product.id)

@@ -50,11 +50,11 @@ export interface Erc20TransferQuery {
   txHash: string
   token: string
   recipient: string
-  minUnits: bigint
+  units: bigint
 }
 
 /**
- * Verifies that `txHash` contains an ERC-20 Transfer of at least `minUnits`
+ * Verifies that `txHash` contains an ERC-20 Transfer of exactly `units`
  * of `token` to `recipient`.
  *   - 'pending' - no receipt yet (still mining); caller should retry.
  *   - 'failed'  - receipt exists but reverted, or no matching transfer.
@@ -83,7 +83,9 @@ export async function verifyErc20Transfer(q: Erc20TransferQuery): Promise<Verify
     } catch {
       continue
     }
-    if (value >= q.minUnits) {
+    // Checkout sends an exact amount. Accepting overpayment would let a public
+    // transaction hash be assigned to a cheaper SKU before its buyer verifies it.
+    if (value === q.units) {
       return { status: 'confirmed', from: topicToAddress(topics[1] ?? '') }
     }
   }

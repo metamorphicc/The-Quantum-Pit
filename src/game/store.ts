@@ -22,7 +22,13 @@ function createInitialState(): GameState {
 }
 
 let state: GameState = createInitialState()
+let stateEpoch = 0
 const listeners = new Set<() => void>()
+
+/** Invalidates delayed work when the active save or login identity changes. */
+export function getStateEpoch(): number {
+  return stateEpoch
+}
 
 export function getState(): GameState {
   return state
@@ -72,6 +78,12 @@ export function setState(
   patch: Partial<GameState> | ((s: GameState) => Partial<GameState>),
 ): void {
   const next = typeof patch === 'function' ? patch(state) : patch
+  if (
+    ('loginMethod' in next && next.loginMethod !== state.loginMethod) ||
+    ('walletAddress' in next && next.walletAddress !== state.walletAddress)
+  ) {
+    stateEpoch += 1
+  }
   state = { ...state, ...next }
   // The high-water mark is bookkeeping, not gameplay: keep it correct here
   // rather than in every caller that can move money.
@@ -82,6 +94,7 @@ export function setState(
 
 /** Replaces the whole state (used by "wipe the account"). */
 export function resetState(): void {
+  stateEpoch += 1
   state = { ...createInitialState(), screen: 'boot' }
   for (const l of listeners) l()
   scheduleSave(saveSlice)
@@ -93,6 +106,7 @@ export function resetState(): void {
  * persisted half is replaced; the current screen and animation state stay.
  */
 export function adoptSave(save: SaveData, awayMs: number): void {
+  stateEpoch += 1
   state = { ...state, ...save, awayMs }
   for (const l of listeners) l()
   scheduleSave(saveSlice)

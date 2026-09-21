@@ -42,6 +42,11 @@ export async function claimOnce(key: string, value: string): Promise<boolean> {
   return result === 'OK'
 }
 
+export async function readClaim(key: string): Promise<string | null> {
+  const result = await redis(['GET', key])
+  return typeof result === 'string' ? result : null
+}
+
 /** Adds a product id to an identity's owned set. Idempotent by nature. */
 export async function grantEntitlement(entitlementKey: string, productId: string): Promise<void> {
   await redis(['SADD', entitlementKey, productId])
@@ -55,10 +60,16 @@ export async function listEntitlements(entitlementKey: string): Promise<string[]
 
 /** Increments a short-lived counter. Used for coarse abuse throttling. */
 export async function incrementExpiring(key: string, windowSec: number): Promise<number> {
-  const result = await redis(['INCR', key])
+  // Keep increment and expiry together; also repair counters left without a TTL.
+  const result = await redis(['EVAL', `
+    local count = redis.call('INCR', KEYS[1])
+    if redis.call('TTL', KEYS[1]) == -1 then
+      redis.call('EXPIRE', KEYS[1], ARGV[1])
+    end
+    return count
+  `, 1, key, windowSec])
   const count = typeof result === 'number' ? result : Number(result)
   if (!Number.isFinite(count)) throw new Error('Store counter failed.')
-  if (count === 1) await redis(['EXPIRE', key, windowSec])
   return count
 }
 

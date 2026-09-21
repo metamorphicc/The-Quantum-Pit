@@ -15,12 +15,12 @@ export interface Res {
 export function parseBody(body: unknown): Record<string, unknown> {
   if (typeof body === 'string') {
     try {
-      return JSON.parse(body) as Record<string, unknown>
+      return parseBody(JSON.parse(body))
     } catch {
       return {}
     }
   }
-  return body && typeof body === 'object' ? (body as Record<string, unknown>) : {}
+  return body && typeof body === 'object' && !Array.isArray(body) ? (body as Record<string, unknown>) : {}
 }
 
 /** Case-insensitive single header read. */
@@ -52,8 +52,27 @@ export function rejectUnsafeJson(req: Req, res: Res, maxBytes = 4096): boolean {
     return true
   }
 
-  if (typeof req.body === 'string' && req.body.length > maxBytes) {
+  let bodyText: string
+  try {
+    bodyText = typeof req.body === 'string' ? req.body : JSON.stringify(req.body) ?? ''
+  } catch {
+    res.status(400).json({ error: 'Invalid JSON body.' })
+    return true
+  }
+  if (new TextEncoder().encode(bodyText).byteLength > maxBytes) {
     res.status(413).json({ error: 'Request body is too large.' })
+    return true
+  }
+
+  let body: unknown
+  try {
+    body = JSON.parse(bodyText)
+  } catch {
+    res.status(400).json({ error: 'Invalid JSON body.' })
+    return true
+  }
+  if (!body || typeof body !== 'object' || Array.isArray(body)) {
+    res.status(400).json({ error: 'Expected a JSON object.' })
     return true
   }
 

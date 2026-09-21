@@ -4,6 +4,7 @@ import { treasuryAddress } from '../_lib/env'
 import { getProduct } from '../_lib/products'
 import { BASE_USDC } from '../_lib/base-rpc'
 import { enforceRateLimit } from '../_lib/rate-limit'
+import { storeConfigured } from '../_lib/store'
 
 const TRANSFER_SELECTOR = 'a9059cbb'
 const BASE_CHAIN_ID = '0x2105'
@@ -25,6 +26,11 @@ export default async function handler(req: Req, res: Res): Promise<void> {
     return
   }
   if (rejectUnsafeJson(req, res)) return
+
+  if (!storeConfigured()) {
+    res.status(503).json({ error: 'Payments are temporarily unavailable.' })
+    return
+  }
 
   if (!treasury) {
     res.status(500).json({ error: 'Treasury address is not configured.' })
